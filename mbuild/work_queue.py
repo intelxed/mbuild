@@ -648,7 +648,6 @@ class work_queue_t(object):
          if verbose(3):
             msgb("SENT TERMINATOR", str(i))
          self._start_a_job(t)
-      self.threads = []
 
    def _join_threads(self):
       """Use this when not running threads in daemon-mode"""
@@ -656,7 +655,8 @@ class work_queue_t(object):
          t.join()
          if verbose(3):
             msgb("WORKER THREAD TERMINATED")
- 
+      self.threads = []
+
    def _add_one(self,command):
       """Add a single command of type L{command_t} to the list
       of jobs to run."""
