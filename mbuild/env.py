@@ -143,7 +143,7 @@ class env_t(object):
 
           - System valuesE{:}
               - uname        standard python tuple of values from uname.
-              - system       standard valuesE{:} 'Linux', 'Windows', 'Darwin', 'Microsoft', 'FreeBSD'
+              - system       standard valuesE{:} 'Linux', 'Windows', 'Darwin', 'Microsoft', 'FreeBSD', 'NetBSD'
               - hostname     
               - build_os     standard valuesE{:} 'lin', 'win', 'mac', 'bsd'
               - host_os      standard valuesE{:} 'lin', 'win', 'mac', 'bsd'
@@ -463,7 +463,7 @@ class env_t(object):
         #uses continue to work.
         self.env['target_cpu']=None
         
-        if self.env['system'] in [ 'Linux', 'FreeBSD']:
+        if self.env['system'] in [ 'Linux', 'FreeBSD', 'NetBSD']:
             uname = platform.uname() 
             self.env['build_os']  = self._normalize_os_name(uname[0])
 
@@ -798,6 +798,13 @@ class env_t(object):
                 (retval, output, error_output) = util.run_command(cmd)
                 if retval == 0 and len(output)>0:
                     n = int(output[0])
+        elif self.on_netbsd():
+            sysctl = "/sbin/sysctl"
+            if os.path.exists(sysctl):
+                cmd = "%s -n hw.ncpuonline" % (sysctl)
+                (retval, output, error_output) = util.run_command(cmd)
+                if retval == 0 and len(output)>0:
+                    n = int(output[0])
         else:
             f = '/proc/cpuinfo'
             proc_pat= re.compile(r'proces')
@@ -1115,6 +1122,13 @@ class env_t(object):
             return True
         return False
 
+    def on_netbsd(self):
+        """@rtype: bool
+           @return:  True iff on netbsd"""
+        if self.env['system'] == 'NetBSD':
+            return True
+        return False
+
     def on_linux(self):
         """@rtype: bool
            @return:  True iff on linux"""
@@ -1199,7 +1213,7 @@ class env_t(object):
             return 'lin'
         elif name in ['mac', 'Darwin']:
             return 'mac'
-        elif name in ['bsd', 'FreeBSD']:
+        elif name in ['bsd', 'FreeBSD', 'NetBSD']:
             return 'bsd'
         elif name[0:6] == 'CYGWIN':
             return 'win'
@@ -1315,7 +1329,7 @@ class env_t(object):
 
     def path_search(self,exe):
         path = os.environ['PATH']
-        if self.on_freebsd() or self.on_linux() or self.on_cygwin():
+        if self.on_freebsd() or self.on_linux() or self.on_cygwin() or self.on_netbsd():
             sep = ':'
         else:
             sep = ';'

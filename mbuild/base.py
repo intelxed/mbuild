@@ -158,6 +158,7 @@ _on_windows = False # cygwin or native windows
 _on_cygwin = False
 _on_linux  = False
 _on_freebsd = False
+_on_netbsd = False
 _operating_system_name = platform.system()
 if _operating_system_name.find('CYGWIN') != -1:
    _on_cygwin = True
@@ -169,6 +170,8 @@ elif _operating_system_name == 'Linux':
    _on_linux = True
 elif _operating_system_name == 'FreeBSD':
    _on_freebsd = True
+elif _operating_system_name == 'NetBSD':
+   _on_netbsd = True
 elif _operating_system_name == 'Darwin':
    _on_mac = True
 else:
