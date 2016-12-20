@@ -425,7 +425,7 @@ def yasm_support(env):
     env['ASDOPT']='-D'
     try:
         env['ASFLAGS'] = ' -f' + yasm_formats[env['host_os']][env['host_cpu']]
-    	env['ASMOUT'] = '-o '
+        env['ASMOUT'] = '-o '
         env['AS'] = 'yasm'
     except:
         die("YASM does not know what format to use for build O/S: %s and target CPU: %s" %

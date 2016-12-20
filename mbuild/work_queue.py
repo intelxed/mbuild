@@ -23,7 +23,11 @@
 import os
 import sys
 import types
-import queue
+is_py2 = sys.version[0] == '2'
+if is_py2:
+    import Queue as queue
+else:
+    import queue as queue
 from threading import Thread
 from collections import deque
 
