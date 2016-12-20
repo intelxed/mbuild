@@ -23,8 +23,8 @@
 import re
 import os
 import sys
-import base
-import util
+from . import base
+from . import util
 
 class mbuild_header_record_t:
     """Stores information about headers that we find"""
@@ -97,7 +97,7 @@ def _test_scan():
     paths = ["/home/mjcharne/proj/learn/" ]
     all_headers = mbuild_scan("/home/mjcharne/proj/learn/foo.cpp", paths)
     for hr in all_headers:
-        print hr
+        print(hr)
 
 if __name__ == '__main__':
     _test_scan()

@@ -105,15 +105,15 @@ to collect the commands using the L{dag_t.results} function  and analyze the
 output. This is very handy for test and validation suites.
 """ 
 
-from base import *
-from dag import *
-from work_queue import *
-from env import *
-from util import *
-from plan import *
-from arar import *
-from doxygen import doxygen_run, doxygen_args, doxygen_env
-from header_tag import *
+from .base import *
+from .dag import *
+from .work_queue import *
+from .env import *
+from .util import *
+from .plan import *
+from .arar import *
+from .doxygen import doxygen_run, doxygen_args, doxygen_env
+from .header_tag import *
 
 __all__ = [ 'base',
             'dag',

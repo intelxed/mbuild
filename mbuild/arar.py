@@ -58,7 +58,7 @@ def repack(files, ar='ar', target='liball.a', verbose=False):
         else:
             cmd = "%s x ../%s" % (ar,arg)
         if verbose:
-            print "EXTRACTING %s" % (cmd)
+            print("EXTRACTING %s" % (cmd))
         error= os.system(cmd)
         if error:
             raise arar_error('Extract failed for command %s' % (cmd))
@@ -66,7 +66,7 @@ def repack(files, ar='ar', target='liball.a', verbose=False):
     local_target = os.path.basename(target)
     cmd = "%s rcv %s %s" % (ar, local_target, " ".join(files))
     if verbose:
-        print "RECOMBINING %s" % (cmd)
+        print("RECOMBINING %s" % (cmd))
     error=os.system(cmd)
     if error:
         raise arar_error('Recombine failed')
@@ -74,7 +74,7 @@ def repack(files, ar='ar', target='liball.a', verbose=False):
     os.chdir('..')
     os.rename(os.path.join(tdir,local_target), target)
     if verbose:
-        print "CREATED %s" % (target)
+        print("CREATED %s" % (target))
     shutil.rmtree(tdir)
 
 

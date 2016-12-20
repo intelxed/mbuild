@@ -24,17 +24,17 @@ def dump(lines):
     if lines:
         for line in lines:
             line = line.strip()
-            print "::" +  line
+            print("::" +  line)
     else:
-        print "(EMPTY)"
+        print("(EMPTY)")
 
 env = mbuild.env_t(0)
 env.parse_args()
 
 infile = file('stdin.py')
 retval,output,error = mbuild.run_command('cat', stdin=infile)
-print "EXIT STATUS ", str(retval)
-print "OUTPUT LINES "
+print("EXIT STATUS ", str(retval))
+print("OUTPUT LINES ")
 dump(output)
-print "ERROR LINES "
+print("ERROR LINES ")
 dump(error)

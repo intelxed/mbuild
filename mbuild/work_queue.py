@@ -23,13 +23,13 @@
 import os
 import sys
 import types
-import Queue
+import queue
 from threading import Thread
 from collections import deque
 
-from base import *
-from util import *
-from dag import *
+from .base import *
+from .util import *
+from .dag import *
 
 
 ############################################################################
@@ -125,7 +125,7 @@ class command_t(object):
       self.id = command_t._ids
       command_t._ids += 1
       # store the command as a list
-      if isinstance(command,types.ListType):
+      if isinstance(command,list):
          self.command = command
       else:
          self.command = [ command ]
@@ -257,7 +257,7 @@ class command_t(object):
       @type n: L{command_t}
       @param n: another (earlier) command
       """
-      if isinstance(n,types.ListType):
+      if isinstance(n,list):
          for x in n:
             self.before_me.append(x)
             x.after_me.append(self)
@@ -270,7 +270,7 @@ class command_t(object):
       @type n: L{command_t}
       @param n: another (later) command
       """
-      if isinstance(n, types.ListType):
+      if isinstance(n, list):
          for x in n:
             self.after_me.append(x)
             x.before_me.append(self)
@@ -325,7 +325,7 @@ class command_t(object):
       for cmd in self.command:
          if isinstance(cmd,types.FunctionType):
             s.append("PYTHON FN: " + cmd.__name__)
-         elif isinstance(cmd,types.StringType):
+         elif isinstance(cmd,bytes):
             s.append(cmd)
          else:
             s.append(str(cmd))
@@ -407,7 +407,7 @@ class command_t(object):
 
    def _extend_output(self,output):
       if output:
-            if isinstance(output,types.ListType):
+            if isinstance(output,list):
                self.output.extend(output)
             else:
                self.output.append(output)
@@ -415,7 +415,7 @@ class command_t(object):
    def _extend_output_stderr(self,output, stderr):
       self._extend_output(output)
       if stderr:
-            if isinstance(stderr,types.ListType):
+            if isinstance(stderr,list):
                self.stderr.extend(stderr)
             else:
                self.stderr.append(stderr)
@@ -447,7 +447,7 @@ class command_t(object):
                (self.exit_status, output) = cmd( self.args, self.xenv )
                self._extend_output(output)
                
-            elif isinstance(cmd,types.StringType):
+            elif isinstance(cmd,bytes):
                # execute command strings
                if self.output_file_name:
                   (self.exit_status, output, stderr) = \
@@ -486,7 +486,7 @@ class command_t(object):
             # stop if something failed
             if self.exit_status != 0:
                break;
-         except Exception, e:
+         except Exception as e:
             self.exit_status = 1
             self.stderr.append("Execution error for: %s\n%s" % (str(e), self.dump()))
             break
@@ -534,9 +534,9 @@ class work_queue_t(object):
       
       # worker threads can add stuff to the new_queue so we
       # use an MT-safe queue.
-      self.new_queue = Queue.Queue(0)
-      self.out_queue = Queue.Queue(0)
-      self.back_queue = Queue.Queue(0)
+      self.new_queue = queue.Queue(0)
+      self.out_queue = queue.Queue(0)
+      self.back_queue = queue.Queue(0)
       self.pending_commands = deque()
       
       self.message_delay = 10
@@ -712,7 +712,7 @@ class work_queue_t(object):
          msgb("ADD CMD", str(type(command)))
 
       if command:
-         if isinstance(command,types.ListType):
+         if isinstance(command,list):
             for c in command:
                if verbose(5):
                   msgb("ADD CMD", str(type(c)))
@@ -825,7 +825,7 @@ class work_queue_t(object):
            self.finished += 1
            self.running_commands.remove(cmd)
            return cmd
-        except Queue.Empty:
+        except queue.Empty:
            return None
         except KeyboardInterrupt:
            msgb('INTERRUPT')
@@ -897,7 +897,7 @@ class work_queue_t(object):
             # some stuff did not build, force an error status return
             msgb("ERROR: DID NOT BUILD SOME STUFF", "\n\t".join(did_not_build))
             if self.dag:
-                  print self.dag.dump()
+                  print(self.dag.dump())
             self.end_time = get_time()
             self._cleanup()
             return False
@@ -964,7 +964,7 @@ class work_queue_t(object):
                for x in self.dag._enable_successors(c):
                   self.add(x.creator)
          if c and (self.show_errors_only==False or c.failed()):
-            print c.dump(show_output=show_output)
+            print(c.dump(show_output=show_output))
          if self._done():
             break;
       return okay
@@ -1010,7 +1010,7 @@ class work_queue_t(object):
                      for x in self.dag._enable_successors(c):
                         self.add(x.creator)
                if self.show_errors_only==False or c.failed():
-                  print c.dump(show_output=show_output)
+                  print(c.dump(show_output=show_output))
                self._status()
          if self._done():
             break;

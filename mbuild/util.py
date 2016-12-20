@@ -35,11 +35,11 @@ import shlex
 import mbuild
 import traceback
 try:
-    import cPickle as apickle
+    import pickle as apickle
 except:
     import pickle as apickle
 
-from base import *
+from .base import *
 
 def find_python(env):
     """return path to NON cygwin"""
@@ -248,10 +248,10 @@ def prefix_files(dir,input_files):
     @rtype: string or list of strings
     @return: input file(s) prefixed with dir sp
     """
-    if isinstance(input_files,types.ListType):
-        new_files = map(lambda(x): join(dir, x), input_files)
+    if isinstance(input_files,list):
+        new_files = [join(dir, x) for x in input_files]
         return new_files
-    elif isinstance(input_files,types.StringType):
+    elif isinstance(input_files,bytes):
         new_file = join(dir, input_files)
         return new_file
     die("Unhandled type in prefix_files: "+ str(type(input_files)))
@@ -357,8 +357,8 @@ def flip_slashes(s):
 
    if on_native_windows():
       return s
-   if type(s) == types.ListType:
-       return  map(flip_slashes, s)
+   if type(s) == list:
+       return  list(map(flip_slashes, s))
    t = re.sub(r'\\',_mysep,s,0) # replace all
    return t
 
@@ -370,8 +370,8 @@ def posix_slashes(s):
    @rtype: string or list of strings
    @return: string(s) with forward slashes
    """
-   if type(s) == types.ListType:
-       return  map(posix_slashes, s)
+   if type(s) == list:
+       return  list(map(posix_slashes, s))
    #t = re.sub(r'\\','/',s,0) # replace all
    last = len(s)-1
    t=[]
@@ -436,7 +436,7 @@ def hash_list(list_of_strings):
         m = hashlib.sha1()
     else:
         m = sha.new()
-    map(lambda (x): m.update(x), list_of_strings)
+    list(map(lambda x: m.update(x), list_of_strings))
     d = m.hexdigest()
     return d
 
@@ -661,9 +661,9 @@ def run_command(cmd,
                                 env=osenv,
                                 **kwargs)
          (stdout, stderr ) = sub.communicate()
-         if not isinstance(stderr,types.ListType):
+         if not isinstance(stderr,list):
              stderr = [stderr]
-         if not isinstance(stdout,types.ListType):
+         if not isinstance(stdout,list):
              stdout = [stdout]
          return (sub.returncode, stdout, stderr)
       else:
@@ -678,10 +678,10 @@ def run_command(cmd,
                                 **kwargs)
          stdout = sub.stdout.readlines()
          sub.wait()
-         if not isinstance(stdout,types.ListType):
+         if not isinstance(stdout,list):
              stdout = [stdout]
          return (sub.returncode, stdout, None)
-   except OSError, e:
+   except OSError as e:
        s= ["Execution failed for: %s\n" % (cmd) ]
        s.append("Result is %s\n" % (str(e)))
        # put the error message in stderr if there is a separate
@@ -689,11 +689,11 @@ def run_command(cmd,
        if separate_stderr:
            if stderr == None:
                stderr = []
-           elif not isinstance(stderr,types.ListType):
+           elif not isinstance(stderr,list):
                stderr = [stderr]
        if stdout == None:
            stdout = []
-       elif not isinstance(stdout,types.ListType):
+       elif not isinstance(stdout,list):
            stdout = [stdout]
        if separate_stderr:
            stderr.extend(s)
@@ -759,7 +759,7 @@ def run_command_unbufferred(cmd,
            
        sub.wait()
        return (sub.returncode, lines, [])
-   except OSError, e:
+   except OSError as e:
        lines.append("Execution failed for: %s\n" % (cmd))
        lines.append("Result is %s\n" % (str(e)))
        return (1, lines,[])
@@ -821,7 +821,7 @@ def run_command_output_file(cmd,
        output.close()
        sub.wait()
        return (sub.returncode, lines, [])
-   except OSError, e:
+   except OSError as e:
        lines.append("Execution failed for: %s\n" % (cmd))
        lines.append("Result is %s\n" % (str(e)))
        return (1, lines,[])
@@ -861,7 +861,7 @@ def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
        fin.close()
        fout.close()
        return retval
-   except OSError, e:
+   except OSError as e:
        die("Execution failed for cmd %s\nResult is %s\n" % (cmd,str(e)))
 
 def find_dir(d):

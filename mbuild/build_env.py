@@ -23,10 +23,10 @@
 import os
 import sys
 import platform
-from base import *
-from util import *
-from env import *
-import msvs
+from .base import *
+from .util import *
+from .env import *
+from . import msvs
 
 
 def set_compiler_env_common(env):
@@ -108,7 +108,7 @@ def set_env_gnu(env):
                                 '4':'%(OPTOPT)s4'} )
 
     # lazy toolchain and other env var (f)  expansion
-    mktool = lambda(f): "%(toolchain)s%(" + f + ")s" 
+    mktool = lambda f: "%(toolchain)s%(" + f + ")s" 
 
     if env['CXX_COMPILER'] == '':
         env['CXX_COMPILER'] = ( 'compiler', { 'gnu':'g++',
@@ -399,7 +399,7 @@ def set_env_ms(env):
         env['ARCHIVER'] =( 'compiler', { 'ms': 'lib.exe',
                                          'icl' : 'xilib.exe'})
     # lazy toolchain and other env var (f)  expansion
-    mktool = lambda(f): "%(toolchain)s%(" + f + ")s" 
+    mktool = lambda f: "%(toolchain)s%(" + f + ")s" 
 
     if env['CXX'] == '':
         env['CXX']  = quote(mktool('CXX_COMPILER'))

@@ -24,8 +24,8 @@ env = mbuild.env_t(0)
 env.parse_args()
 
 retval, output, error = mbuild.run_command_timed('./spew', seconds=2)
-print "RETURN CODE ", retval
-print "OUTPUT LINES ", len(output)
-print "ERROR LINES ", len(error)
+print("RETURN CODE ", retval)
+print("OUTPUT LINES ", len(output))
+print("ERROR LINES ", len(error))
 for l in error:
-    print 'ERROR OUTPUT [{}]'.format(l.strip())
+    print('ERROR OUTPUT [{}]'.format(l.strip()))

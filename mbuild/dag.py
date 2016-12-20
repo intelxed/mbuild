@@ -73,19 +73,19 @@ import platform
 import types
 import collections
 try:
-    import cPickle as apickle
+    import pickle as apickle
 except:
     import pickle as apickle
 
 
-from base import *
-from work_queue import *
-from env import *
-from util import *
-from plan import *
-import scanner
-import dfs
-import util
+from .base import *
+from .work_queue import *
+from .env import *
+from .util import *
+from .plan import *
+from . import scanner
+from . import dfs
+from . import util
 
 class _mbuild_dep_record_t(object):
     """This stores the basic dependence structure for the
@@ -248,7 +248,7 @@ class _mbuild_dep_record_t(object):
     def dump(self):
         """print a string representing this node of the DAG. The
         string comes from the __str__ function"""
-        print self.dump_str()
+        print(self.dump_str())
     def __str__(self):
         return self.dump_str()
 
@@ -309,7 +309,7 @@ class dag_t(object):
         """
         node_dict = {}
         # build the graph for the DFS
-        for k,v in self.recs.iteritems():
+        for k,v in self.recs.items():
             if k in node_dict:
                 node = node_dict[k] 
             else:
@@ -323,7 +323,7 @@ class dag_t(object):
                     node_dict[p] = pnode
                 node.add_successor(pnode)
         # Traverse the graph
-        cycle = dfs.dfs(node_dict.values())
+        cycle = dfs.dfs(list(node_dict.values()))
         if cycle:
             msgb("CYCLE DETECTED IN DAG")
         return cycle
@@ -333,13 +333,13 @@ class dag_t(object):
 
     def dump(self):
         """print a string representing   the DAG. """
-        print "DAG DUMP"
-        for v in self.recs.itervalues():
+        print("DAG DUMP")
+        for v in self.recs.values():
             v.dump()
 
     def _hash_mixed_list(l):
 
-        if isinstance(l, types.ListType): 
+        if isinstance(l, list): 
             il = l
         else:
             il = [l]
@@ -357,7 +357,7 @@ class dag_t(object):
         if verbose(10):
             msgb("WRITING SIGNATURES", self.signature_file_name)
         d = {}
-        for (k,v) in self.recs.iteritems():
+        for (k,v) in self.recs.items():
             # get the new hash values for anything that had a command
             # execute for it.
             if v.creator:
@@ -436,11 +436,11 @@ class dag_t(object):
             warn("READING SIGNATURES FAILED FOR "+ file_name)
             return
         if verbose(99):
-            for k, v in self.old_signatures.iteritems():
+            for k, v in self.old_signatures.items():
                 msgb("SIGREAD", "%s -> %s" % (str(v.signature),k))
 
         # Add old signatures to any existing files
-        for k, v in self.recs.iteritems():
+        for k, v in self.recs.items():
             if k in self.old_signatures:
                 v.old_signature = self.old_signatures[k].signature
 
@@ -542,13 +542,13 @@ class dag_t(object):
         required for the build. Internal function"""
         if verbose(10):
             msgb("INPUT TARGETS", str(targets))
-        for v in self.recs.itervalues():
+        for v in self.recs.values():
             v.required = False
 
         target_dictionary = dict.fromkeys(targets, True)
         if verbose(10):
             msgb("TARGETS", str(target_dictionary))
-        for v in self.recs.itervalues():
+        for v in self.recs.values():
             if v.creator:
                 if v.file_name in target_dictionary:
                     if not v.required:
@@ -563,7 +563,7 @@ class dag_t(object):
         (1)there was an error in the build or (2) there is a
         circularity in the dependence structure."""
         did_not_build = []
-        for v in self.recs.itervalues():
+        for v in self.recs.values():
             if v.required and not v.visited:
                 did_not_build.append(v.file_name)
         return did_not_build
@@ -623,19 +623,19 @@ class dag_t(object):
         nodes = collections.deque() # work list
 
         if targets:
-            if not isinstance(targets, types.ListType): # make it a list
+            if not isinstance(targets, list): # make it a list
                 targets = [ targets ]
             self._find_required_nodes(targets)
         else:
             # mark all nodes required since no targets are specified
-            for v in self.recs.itervalues():
+            for v in self.recs.values():
                 v.required = True
         
-        self._find_loops(self.recs.itervalues())        
+        self._find_loops(iter(self.recs.values()))        
 
         # build a list of roots -- files that have nothing they depend on.
         # store that list in the nodes list
-        for v in self.recs.itervalues():
+        for v in self.recs.values():
             v.visited = False # initialize all to false
             v.added = False # initialize all to false
             if (v.part_of_loop or len(v.files_that_are_inputs) == 0) and v.required:
@@ -809,7 +809,7 @@ class dag_t(object):
 
             self._scan_successors(nodes,n)
         vmsgb(20,"READYD", str(readyd))
-        ready = readyd.values()
+        ready = list(readyd.values())
         return ready
 
     def _find_rec_for_missing_file(self, fn, assumed_directory):
@@ -834,7 +834,7 @@ class dag_t(object):
     def _make_list(self, x): # private
         """Make a list from a single object if the thing is not
         already a list. If it is a list, just return the list"""
-        if isinstance(x,types.ListType):
+        if isinstance(x,list):
             return x
         return [ x ]
 
@@ -1015,7 +1015,7 @@ class dag_t(object):
         @return: A list of L{command_t} objects.
         """
         executed_commands = []
-        for r in self.recs.itervalues():
+        for r in self.recs.values():
             if r.creator:
                 if r.creator.completed:
                     executed_commands.append(r.creator)
@@ -1039,7 +1039,7 @@ class dag_t(object):
         """
         if verbose(12):
             msgb("DAG ADDING", str(d))
-        if isinstance(d,types.DictType):
+        if isinstance(d,dict):
             q = self._convert_to_dagfood(d)
             c = self._add_dagfood(env,q)
         elif isinstance(d,plan_t):

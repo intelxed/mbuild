@@ -37,9 +37,9 @@ LIBPATH, LIB, PATH, VCINSTALLDIR, VS80COMNTOOLS, VSINSTALLDIR, etc.
 import os
 import sys
 import platform
-from base import *
-from util import *
-from env import *
+from .base import *
+from .util import *
+from .env import *
 
 ########################################################################
 def set_env(v,s):
@@ -54,7 +54,7 @@ def set_env(v,s):
     # error msg.
     try:
         os.environ[v]=s
-    except Exception, e:
+    except Exception as e:
         sys.stderr.write( str(e) + '\n')
         sys.stderr.write("Env Variable [%s]\n" % (v))
         sys.stderr.write("Original was [%s]\n" % (orig))
@@ -805,26 +805,26 @@ def _try_to_figure_out_msvs_version(env):
     return '' # we don't know
 
 def _read_registry(root,key,value):
-    import _winreg
+    import winreg
     try:
-        hkey = _winreg.OpenKey(root, key)
+        hkey = winreg.OpenKey(root, key)
     except:
         return None
     try:
-        (val, typ) = _winreg.QueryValueEx(hkey, value)
+        (val, typ) = winreg.QueryValueEx(hkey, value)
     except:
-        _winreg.CloseKey(hkey)
+        winreg.CloseKey(hkey)
         return None
-    _winreg.CloseKey(hkey)
+    winreg.CloseKey(hkey)
     return val
 
 def find_msvc(env,version):
-    import _winreg
+    import winreg
     vs_ver = str(version) + '.0'
     vs_key = 'SOFTWARE\\Microsoft\\VisualStudio\\' + vs_ver + '\\Setup\\VS'
     vc_key = 'SOFTWARE\\Microsoft\\VisualStudio\\' + vs_ver + '\\Setup\\VC'
-    vs_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, vs_key, 'ProductDir')
-    vc_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, vc_key, 'ProductDir')
+    vs_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, vs_key, 'ProductDir')
+    vc_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, vc_key, 'ProductDir')
     
     # On a 64-bit host, look for a 32-bit installation 
 
@@ -833,9 +833,9 @@ def find_msvc(env,version):
             vs_ver + '\\Setup\\VS'
         vc_key = 'SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\' + \
             vs_ver + '\\Setup\\VC'
-        vs_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, 
+        vs_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, 
                                 vs_key, 'ProductDir')
-        vc_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, 
+        vc_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, 
                                 vc_key, 'ProductDir')
     return (vs_dir,vc_dir)
 
