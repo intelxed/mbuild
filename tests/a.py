@@ -19,6 +19,7 @@
 #END_LEGAL
 
 import sys
+sys.path = ['..'] + sys.path
 import mbuild
 
 env = mbuild.env_t()

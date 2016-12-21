@@ -72,6 +72,7 @@ import sys
 import platform
 import types
 import collections
+import atexit
 try:
     import pickle as apickle
 except:
@@ -249,6 +250,9 @@ class _mbuild_storage_object_t(object):
     def __init__(self, signature):
         self.signature = signature
         
+def _do_terminate(d):
+    """called by atexit function for dag_t objects"""
+    d.terminate()
     
 class dag_t(object):
     """
@@ -293,7 +297,7 @@ class dag_t(object):
                 set(self._canonize_if_exists_fn(env['required']))
         else:
             self.required_set = set()
-
+        atexit.register(_do_terminate, self)
 
     def cycle_check(self):
         """Check the DAG for illegal cycles in the include structure.
@@ -320,8 +324,8 @@ class dag_t(object):
         if cycle:
             msgb("CYCLE DETECTED IN DAG")
         return cycle
-
-    def __del__(self):
+    
+    def terminate(self):
         self.dag_write_signatures()
 
     def dump(self):
