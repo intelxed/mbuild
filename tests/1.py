@@ -28,7 +28,8 @@ env.parse_args()
 
 env['jobs']=1
 work_queue = mbuild.work_queue_t(env['jobs'])
-all_cmds = [ '/bin/ls -R ../..' ]
+all_cmds = [ '/bin/ls',
+             '/bin/ls' ]
 subs = {}
 command_list = []
 for cmd in all_cmds:
@@ -43,3 +44,12 @@ okay = work_queue.build()
 if not okay:
     mbuild.die("[%s] failed. dying..." % phase)
 mbuild.msgb(phase, "succeeded")
+
+ # if you care about cleaning up threads during execution
+ # (say if you have a lot of work queues with lots of threads)
+ # This will clean them out and terminate the threads.
+ #
+ # In python2 I did this at __del__ for the work queue
+ # but that idiom fails in python3.
+work_queue.terminate()
+

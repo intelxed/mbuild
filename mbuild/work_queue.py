@@ -510,8 +510,9 @@ def _worker_one_task(incoming,outgoing):
       outgoing.put(item)
       return False
    item.execute()
-   #incoming.task_done() # PYTHON2.5 ONLY
+   incoming.task_done()
    outgoing.put(item)
+   #msgb("FINISHED TASK")
    return True
 
 def _worker(incoming,outgoing):
@@ -566,6 +567,7 @@ class work_queue_t(object):
       # the new_queue, job_num and pending get updated by add() before we build.
       # so we must clean them up after every build. Also good hygene to clean out
       # the task queues that we use to talk to the workers.
+      #msgb("CLEANUP QUEUES")
       self.pending_commands = deque()
       self._empty_queue(self.new_queue)
       self._empty_queue(self.out_queue)
@@ -624,8 +626,13 @@ class work_queue_t(object):
    def __del__(self):
       if verbose(3):
          msgb("DEL WORK QUEUE")
+      # self._terminate()
+      
+   def terminate(self):
+      if verbose(3):
+         msgb("SHUTTIN DOWN AND GOIN HOME")
       self._terminate()
-
+       
    def _terminate(self):
       """Shut everything down. Kill the worker threads if any were
       being used. This is called when the work_queue_t is garbage
@@ -643,7 +650,7 @@ class work_queue_t(object):
          t.setDaemon(True)
          t.start()
          self.threads.append(t)
-
+               
    def _stop_daemons(self):
       """Send terminator objects to all the workers"""
       for i in range(self.max_parallelism):
@@ -803,6 +810,7 @@ class work_queue_t(object):
          self.all_commands.append(cmd)
       self.sent += 1
       self.running += 1
+      #msgb("FINISHED SENDING TASK")
 
    def _command_names(self):
        s = []
@@ -828,6 +836,7 @@ class work_queue_t(object):
            self.running -= 1
            self.finished += 1
            self.running_commands.remove(cmd)
+           self.back_queue.task_done()
            return cmd
         except queue.Empty:
            return None
