@@ -56,6 +56,13 @@ def mbuild_compute_path(hname, search_path):
 mbuild_include_pattern = re.compile(r'^[ \t]*#[ \t]*include[ \t]+"(?P<hdr>[^"]+)"')
 mbuild_nasm_include_pattern = re.compile(r'^[ \t]*%include[ \t]+"(?P<hdr>[^"]+)"')
 
+is_py2 = sys.version[0] == '2'
+def open_errors(fn):
+    if is_py2:
+        return open(fn, 'r')
+    else:
+        return open(fn, 'r', errors='ignore')
+
 def mbuild_scan(fn, search_path):
     """Given a file name fn, and a list of search paths, scan for
     headers in fn and return a list of mbuild_header_record_t's. The
@@ -75,7 +82,7 @@ def mbuild_scan(fn, search_path):
         source_path = '.'
     aug_search_path = [source_path] + search_path
         
-    with open(fn,'r',errors='ignore') as f:
+    with open_errors(fn) as f:
         for line in f:
             #print line
             hgroup = mbuild_include_pattern.match(line)
