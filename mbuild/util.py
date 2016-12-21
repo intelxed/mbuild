@@ -251,7 +251,7 @@ def prefix_files(dir,input_files):
     if isinstance(input_files,list):
         new_files = [join(dir, x) for x in input_files]
         return new_files
-    elif isinstance(input_files,bytes):
+    elif isinstance(input_files,str):
         new_file = join(dir, input_files)
         return new_file
     die("Unhandled type in prefix_files: "+ str(type(input_files)))
@@ -430,26 +430,17 @@ if check_python_version(2,5):
 else:
     import sha
 
-def hash_list(list_of_strings):
-    """Compute a sha1 hash of a list of strings and return the hex digest"""
+def hash_file(fn):
+    if not os.path.exists(fn):
+        return None
     if check_python_version(2,5):
         m = hashlib.sha1()
     else:
         m = sha.new()
-    list(map(lambda x: m.update(x), list_of_strings))
-    d = m.hexdigest()
-    return d
-
-
-def hash_file(fn):
-    if os.path.exists(fn):
-        try:
-            lines = file(fn).readlines()
-        except:
-            die("COULD NOT READ: %s" % (fn))
-        signature = hash_list(lines)
-        return signature
-    return None
+    with open(fn,'rb') as afile:
+        buf = afile.read()
+        m.update(buf)
+    return m.hexdigest()
 
 
 def write_signatures(fn,d):
@@ -462,7 +453,7 @@ def write_signatures(fn,d):
 def read_signatures(fn):
     """Return a dictionary of d[file]=hash from the specified file"""
     try:
-        f = open(fn,"r")
+        f = open(fn,"rb")
         d = apickle.load(f)
         f.close()
         return d
@@ -610,7 +601,7 @@ def _cond_open_input_file(directory,input_file_name):
             fn = os.path.join(directory, input_file_name)
         else:
             fn  = input_file_name
-        input_file_obj = file(fn,"r")
+        input_file_obj = open(fn,"r")
         return input_file_obj
     return None
 
@@ -659,6 +650,7 @@ def run_command(cmd,
                                 stderr = subprocess.PIPE,
                                 cwd=directory,
                                 env=osenv,
+                                universal_newlines=True,
                                 **kwargs)
          (stdout, stderr ) = sub.communicate()
          if not isinstance(stderr,list):
@@ -675,6 +667,7 @@ def run_command(cmd,
                                 stderr = subprocess.STDOUT,
                                 cwd=directory,
                                 env=osenv,
+                                universal_newlines=True,
                                 **kwargs)
          stdout = sub.stdout.readlines()
          sub.wait()
@@ -745,6 +738,7 @@ def run_command_unbufferred(cmd,
                               stderr = subprocess.STDOUT,
                               env=osenv,
                               cwd=directory,
+                              universal_newlines=True,
                               **kwargs)
        while 1:
            # FIXME: 2008-12-05 bad for password prompts without newlines.
@@ -797,7 +791,7 @@ def run_command_output_file(cmd,
    lines = []
    cmd_args = _prepare_cmd(cmd)
    try:
-       output = file(output_file_name,"w")
+       output = open(output_file_name,"w")
        input_file_obj = _cond_open_input_file(directory, input_file_name)
        sub = subprocess.Popen(cmd_args,
                               shell=use_shell,
@@ -807,6 +801,7 @@ def run_command_output_file(cmd,
                               stderr = subprocess.STDOUT,
                               env=osenv,
                               cwd=directory,
+                              universal_newlines=True,
                               **kwargs)
        #msgb("RUNNING SUBPROCESS")
        while 1:
@@ -856,6 +851,7 @@ def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
                               stdin=fin, 
                               stdout=fout, 
                               stderr=subprocess.STDOUT,
+                              universal_newlines=True,
                               cwd=directory)
        retval = sub.wait()
        fin.close()
@@ -1017,6 +1013,7 @@ class _timed_command_t(threading.Thread):
                                         cwd=self.directory,
                                         env=self.osenv,
                                         stdin = input_file_obj,
+                                        universal_newlines=True,
                                         **self.kwargs)
         except:
             (self.exception_type,
@@ -1106,8 +1103,8 @@ def run_command_timed( cmd,
 
     # we use a temporary file to hold the output because killing the
     # process disrupts the normal output collection mechanism.
-    fo = tempfile.SpooledTemporaryFile()
-    fe = tempfile.SpooledTemporaryFile()
+    fo = tempfile.SpooledTemporaryFile(mode='w+')
+    fe = tempfile.SpooledTemporaryFile(mode='w+')
     tc = _timed_command_t(cmd,
                           shell_executable,
                           directory,

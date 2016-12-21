@@ -75,20 +75,21 @@ def mbuild_scan(fn, search_path):
         source_path = '.'
     aug_search_path = [source_path] + search_path
         
-    for line in file(fn).readlines():
-        #print line
-        hgroup = mbuild_include_pattern.match(line)
-        if not hgroup:
-            hgroup = mbuild_nasm_include_pattern.match(line)
-        if hgroup:
-            hname =  hgroup.group('hdr')
-            #print hname
-            full_name = mbuild_compute_path(hname, aug_search_path)
-            if full_name:
-                hr = mbuild_header_record_t(full_name)
-            else:
-                hr = mbuild_header_record_t(hname, found=False)
-            all_names.append(hr)
+    with open(fn,'r',errors='ignore') as f:
+        for line in f:
+            #print line
+            hgroup = mbuild_include_pattern.match(line)
+            if not hgroup:
+                hgroup = mbuild_nasm_include_pattern.match(line)
+                if hgroup:
+                    hname =  hgroup.group('hdr')
+                    #print hname
+                    full_name = mbuild_compute_path(hname, aug_search_path)
+                    if full_name:
+                        hr = mbuild_header_record_t(full_name)
+                    else:
+                        hr = mbuild_header_record_t(hname, found=False)
+                        all_names.append(hr)
     return all_names
 
 

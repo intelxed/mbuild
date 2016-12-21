@@ -145,7 +145,7 @@ def _customize_doxygen_file(env, subs):
 
     # input and output files
     try:
-        lines =  file(env['doxygen_config']).readlines()
+        lines =  open(env['doxygen_config'],'r').readlines()
     except:
         mbuild.msgb("Could not open input file: " + env['doxygen_config'])
         return False
