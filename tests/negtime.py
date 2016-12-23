@@ -19,4 +19,4 @@
 
 import find
 import mbuild
-print mbuild.get_elapsed_time(10,0)
+print(mbuild.get_elapsed_time(10,0))

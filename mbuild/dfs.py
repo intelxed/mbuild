@@ -53,7 +53,7 @@ class node_t(object):
         s = []
         s.append("TARGET: %s\n\t" % self.name)
         s.append("discovered %d  finalized %d\n\t" % (self.discover, self.finalize))
-        s.extend(map(lambda(x): "\t\n%s" % x.name, self.afters))
+        s.extend(["\t\n%s" % x.name for x in self.afters])
         return ''.join(s)
 
 
@@ -62,7 +62,7 @@ def _print_cycle(last_visit, grey_loop_closer):
     pad = ''
     p = last_visit
     while 1:
-        print pad, p.name
+        print(pad, p.name)
         if p == grey_loop_closer:
             break
         p = p.predecessor
@@ -73,7 +73,7 @@ def _visit(n):
     n.color = 1
     n.discover = _dfs_time
     if _dfs_verbose:
-        print "visiting %s" % str(n)
+        print("visiting %s" % str(n))
     _dfs_time += 1
     retval = False
     for a in n.afters:
@@ -82,7 +82,7 @@ def _visit(n):
             retval |= _visit(a)
         elif a.color == 1:
             # a back-edge
-            print "cycle"
+            print("cycle")
             _print_cycle(n,a)
             retval = True
     n.color = 2
@@ -117,7 +117,7 @@ def _visit_transpose(n):
     global _dfs_time
     n.color = 1
     if _dfs_verbose:
-        print "visiting %s" % str(n)
+        print("visiting %s" % str(n))
     for a in n.befores:
         if a.color == 0:
             _visit_transpose(a)
@@ -134,7 +134,7 @@ def dfs_transpose(nodes):
         if n.color == 0:
             _visit_transpose(n)
             if _dfs_verbose:
-                print "===="
+                print("====")
 
 ####################################################
             
@@ -151,7 +151,7 @@ def _test_dfs():
     nodes = [ node1, node2, node3, node4 ]
     cycle = dfs(nodes)
     if cycle:
-        print "CYCLE DETECTED"
+        print("CYCLE DETECTED")
     #print "VISIT TRANSPOSE"
     #dfs_transpose(nodes)
 

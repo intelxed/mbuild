@@ -53,8 +53,8 @@ if okay:
 else:
     mbuild.msgb('BUILD', 'failed')
 
-print len(c2.output)
-print c2.output[0:10]
-print str(c2.stderr)
-print str(c3.output)
+print(len(c2.output))
+print(c2.output[0:10])
+print(str(c2.stderr))
+print(str(c3.output))
 

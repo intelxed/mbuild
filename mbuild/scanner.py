@@ -23,8 +23,8 @@
 import re
 import os
 import sys
-import base
-import util
+from . import base
+from . import util
 
 class mbuild_header_record_t:
     """Stores information about headers that we find"""
@@ -56,6 +56,13 @@ def mbuild_compute_path(hname, search_path):
 mbuild_include_pattern = re.compile(r'^[ \t]*#[ \t]*include[ \t]+"(?P<hdr>[^"]+)"')
 mbuild_nasm_include_pattern = re.compile(r'^[ \t]*%include[ \t]+"(?P<hdr>[^"]+)"')
 
+is_py2 = sys.version[0] == '2'
+def open_errors(fn):
+    if is_py2:
+        return open(fn, 'r')
+    else:
+        return open(fn, 'r', errors='ignore')
+
 def mbuild_scan(fn, search_path):
     """Given a file name fn, and a list of search paths, scan for
     headers in fn and return a list of mbuild_header_record_t's. The
@@ -75,20 +82,21 @@ def mbuild_scan(fn, search_path):
         source_path = '.'
     aug_search_path = [source_path] + search_path
         
-    for line in file(fn).readlines():
-        #print line
-        hgroup = mbuild_include_pattern.match(line)
-        if not hgroup:
-            hgroup = mbuild_nasm_include_pattern.match(line)
-        if hgroup:
-            hname =  hgroup.group('hdr')
-            #print hname
-            full_name = mbuild_compute_path(hname, aug_search_path)
-            if full_name:
-                hr = mbuild_header_record_t(full_name)
-            else:
-                hr = mbuild_header_record_t(hname, found=False)
-            all_names.append(hr)
+    with open_errors(fn) as f:
+        for line in f:
+            #print line
+            hgroup = mbuild_include_pattern.match(line)
+            if not hgroup:
+                hgroup = mbuild_nasm_include_pattern.match(line)
+                if hgroup:
+                    hname =  hgroup.group('hdr')
+                    #print hname
+                    full_name = mbuild_compute_path(hname, aug_search_path)
+                    if full_name:
+                        hr = mbuild_header_record_t(full_name)
+                    else:
+                        hr = mbuild_header_record_t(hname, found=False)
+                        all_names.append(hr)
     return all_names
 
 
@@ -97,7 +105,7 @@ def _test_scan():
     paths = ["/home/mjcharne/proj/learn/" ]
     all_headers = mbuild_scan("/home/mjcharne/proj/learn/foo.cpp", paths)
     for hr in all_headers:
-        print hr
+        print(hr)
 
 if __name__ == '__main__':
     _test_scan()

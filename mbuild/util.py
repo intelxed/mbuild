@@ -35,11 +35,11 @@ import shlex
 import mbuild
 import traceback
 try:
-    import cPickle as apickle
+    import pickle as apickle
 except:
     import pickle as apickle
 
-from base import *
+from .base import *
 
 def find_python(env):
     """return path to NON cygwin"""
@@ -248,10 +248,10 @@ def prefix_files(dir,input_files):
     @rtype: string or list of strings
     @return: input file(s) prefixed with dir sp
     """
-    if isinstance(input_files,types.ListType):
-        new_files = map(lambda(x): join(dir, x), input_files)
+    if isinstance(input_files,list):
+        new_files = [join(dir, x) for x in input_files]
         return new_files
-    elif isinstance(input_files,types.StringType):
+    elif isinstance(input_files,str):
         new_file = join(dir, input_files)
         return new_file
     die("Unhandled type in prefix_files: "+ str(type(input_files)))
@@ -357,8 +357,8 @@ def flip_slashes(s):
 
    if on_native_windows():
       return s
-   if type(s) == types.ListType:
-       return  map(flip_slashes, s)
+   if type(s) == list:
+       return  list(map(flip_slashes, s))
    t = re.sub(r'\\',_mysep,s,0) # replace all
    return t
 
@@ -370,8 +370,8 @@ def posix_slashes(s):
    @rtype: string or list of strings
    @return: string(s) with forward slashes
    """
-   if type(s) == types.ListType:
-       return  map(posix_slashes, s)
+   if type(s) == list:
+       return  list(map(posix_slashes, s))
    #t = re.sub(r'\\','/',s,0) # replace all
    last = len(s)-1
    t=[]
@@ -430,26 +430,17 @@ if check_python_version(2,5):
 else:
     import sha
 
-def hash_list(list_of_strings):
-    """Compute a sha1 hash of a list of strings and return the hex digest"""
+def hash_file(fn):
+    if not os.path.exists(fn):
+        return None
     if check_python_version(2,5):
         m = hashlib.sha1()
     else:
         m = sha.new()
-    map(lambda (x): m.update(x), list_of_strings)
-    d = m.hexdigest()
-    return d
-
-
-def hash_file(fn):
-    if os.path.exists(fn):
-        try:
-            lines = file(fn).readlines()
-        except:
-            die("COULD NOT READ: %s" % (fn))
-        signature = hash_list(lines)
-        return signature
-    return None
+    with open(fn,'rb') as afile:
+        buf = afile.read()
+        m.update(buf)
+    return m.hexdigest()
 
 
 def write_signatures(fn,d):
@@ -462,7 +453,7 @@ def write_signatures(fn,d):
 def read_signatures(fn):
     """Return a dictionary of d[file]=hash from the specified file"""
     try:
-        f = open(fn,"r")
+        f = open(fn,"rb")
         d = apickle.load(f)
         f.close()
         return d
@@ -610,7 +601,7 @@ def _cond_open_input_file(directory,input_file_name):
             fn = os.path.join(directory, input_file_name)
         else:
             fn  = input_file_name
-        input_file_obj = file(fn,"r")
+        input_file_obj = open(fn,"r")
         return input_file_obj
     return None
 
@@ -659,11 +650,12 @@ def run_command(cmd,
                                 stderr = subprocess.PIPE,
                                 cwd=directory,
                                 env=osenv,
+                                universal_newlines=True,
                                 **kwargs)
          (stdout, stderr ) = sub.communicate()
-         if not isinstance(stderr,types.ListType):
+         if not isinstance(stderr,list):
              stderr = [stderr]
-         if not isinstance(stdout,types.ListType):
+         if not isinstance(stdout,list):
              stdout = [stdout]
          return (sub.returncode, stdout, stderr)
       else:
@@ -675,13 +667,14 @@ def run_command(cmd,
                                 stderr = subprocess.STDOUT,
                                 cwd=directory,
                                 env=osenv,
+                                universal_newlines=True,
                                 **kwargs)
          stdout = sub.stdout.readlines()
          sub.wait()
-         if not isinstance(stdout,types.ListType):
+         if not isinstance(stdout,list):
              stdout = [stdout]
          return (sub.returncode, stdout, None)
-   except OSError, e:
+   except OSError as e:
        s= ["Execution failed for: %s\n" % (cmd) ]
        s.append("Result is %s\n" % (str(e)))
        # put the error message in stderr if there is a separate
@@ -689,11 +682,11 @@ def run_command(cmd,
        if separate_stderr:
            if stderr == None:
                stderr = []
-           elif not isinstance(stderr,types.ListType):
+           elif not isinstance(stderr,list):
                stderr = [stderr]
        if stdout == None:
            stdout = []
-       elif not isinstance(stdout,types.ListType):
+       elif not isinstance(stdout,list):
            stdout = [stdout]
        if separate_stderr:
            stderr.extend(s)
@@ -745,6 +738,7 @@ def run_command_unbufferred(cmd,
                               stderr = subprocess.STDOUT,
                               env=osenv,
                               cwd=directory,
+                              universal_newlines=True,
                               **kwargs)
        while 1:
            # FIXME: 2008-12-05 bad for password prompts without newlines.
@@ -759,7 +753,7 @@ def run_command_unbufferred(cmd,
            
        sub.wait()
        return (sub.returncode, lines, [])
-   except OSError, e:
+   except OSError as e:
        lines.append("Execution failed for: %s\n" % (cmd))
        lines.append("Result is %s\n" % (str(e)))
        return (1, lines,[])
@@ -797,7 +791,7 @@ def run_command_output_file(cmd,
    lines = []
    cmd_args = _prepare_cmd(cmd)
    try:
-       output = file(output_file_name,"w")
+       output = open(output_file_name,"w")
        input_file_obj = _cond_open_input_file(directory, input_file_name)
        sub = subprocess.Popen(cmd_args,
                               shell=use_shell,
@@ -807,6 +801,7 @@ def run_command_output_file(cmd,
                               stderr = subprocess.STDOUT,
                               env=osenv,
                               cwd=directory,
+                              universal_newlines=True,
                               **kwargs)
        #msgb("RUNNING SUBPROCESS")
        while 1:
@@ -821,7 +816,7 @@ def run_command_output_file(cmd,
        output.close()
        sub.wait()
        return (sub.returncode, lines, [])
-   except OSError, e:
+   except OSError as e:
        lines.append("Execution failed for: %s\n" % (cmd))
        lines.append("Result is %s\n" % (str(e)))
        return (1, lines,[])
@@ -856,12 +851,13 @@ def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
                               stdin=fin, 
                               stdout=fout, 
                               stderr=subprocess.STDOUT,
+                              universal_newlines=True,
                               cwd=directory)
        retval = sub.wait()
        fin.close()
        fout.close()
        return retval
-   except OSError, e:
+   except OSError as e:
        die("Execution failed for cmd %s\nResult is %s\n" % (cmd,str(e)))
 
 def find_dir(d):
@@ -1017,6 +1013,7 @@ class _timed_command_t(threading.Thread):
                                         cwd=self.directory,
                                         env=self.osenv,
                                         stdin = input_file_obj,
+                                        universal_newlines=True,
                                         **self.kwargs)
         except:
             (self.exception_type,
@@ -1106,8 +1103,8 @@ def run_command_timed( cmd,
 
     # we use a temporary file to hold the output because killing the
     # process disrupts the normal output collection mechanism.
-    fo = tempfile.SpooledTemporaryFile()
-    fe = tempfile.SpooledTemporaryFile()
+    fo = tempfile.SpooledTemporaryFile(mode='w+')
+    fe = tempfile.SpooledTemporaryFile(mode='w+')
     tc = _timed_command_t(cmd,
                           shell_executable,
                           directory,

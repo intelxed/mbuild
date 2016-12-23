@@ -136,7 +136,7 @@ def _customize_doxygen_file(env, subs):
     Returns True on success"""
     
     # doxygen wants quotes around paths with spaces
-    for k,s in subs.iteritems():
+    for k,s in subs.items():
        if re.search(' ',s):
           if not re.search('^".*"$',s):
              mbuild.die("Doxygen requires quotes around strings with spaces: [%s]->[%s]" %
@@ -145,7 +145,7 @@ def _customize_doxygen_file(env, subs):
 
     # input and output files
     try:
-        lines =  file(env['doxygen_config']).readlines()
+        lines =  open(env['doxygen_config'],'r').readlines()
     except:
         mbuild.msgb("Could not open input file: " + env['doxygen_config'])
         return False
@@ -160,13 +160,13 @@ def _customize_doxygen_file(env, subs):
           
     # compile the patterns
     rsubs = {}
-    for k,v in subs.iteritems():
+    for k,v in subs.items():
        rsubs[k]=re.compile(r'(?P<tag>[$][(]' + k + '[)])')
 
     olines = []
     for line in  lines:
        oline = line
-       for k,p in rsubs.iteritems():
+       for k,p in rsubs.items():
           #print 'searching for', k, 'to replace it with', subs[k]
           m =  p.search(oline)
           while m:
@@ -191,7 +191,7 @@ def _build_doxygen_main(args, env):
     """Customize the doxygen input file. Run the doxygen command, copy
     in any images, and put the output in the right place."""
 
-    if type(args) is types.ListType:
+    if type(args) is list:
        if len(args) < 2:
           mbuild.die("Need subs dictionary and  dummy file arg for the doxygen command " +
                      "to indicate its processing")       
@@ -261,7 +261,7 @@ def _make_doxygen_reference_manual(env, doxygen_inputs, subs, work_queue,
     dirs = {}
     for f in doxygen_inputs:
        dirs[os.path.dirname(f)]=True
-    for d in dirs.iterkeys():
+    for d in dirs.keys():
        env.add_include_dir(d)
 
     # make sure the config and top file are in the inptus list
