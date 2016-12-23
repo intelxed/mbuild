@@ -1200,6 +1200,8 @@ class env_t(object):
             return 'x86-64'
         elif name == 'intel64':
             return 'x86-64'
+        elif name[0:5] == 'AMD64':
+            return 'x86-64'
         elif name[0:3] == 'x86':
             return 'ia32'
         else:
