@@ -249,6 +249,61 @@ def find_ms_toolchain(env):
         env['toolchain'] = toolchain  # default toolchain that we discover
 
         
+def _check_set_rc(env, sdk):
+    def _path_check_rc_cmd(env):
+        if  os.path.exists(env.expand('%(RC_CMD)s')):
+            return True
+        return False
+
+    if env['host_cpu'] == 'x86-64':
+        env['RC_CMD'] = os.path.join(sdk,'bin','x64','rc.exe')
+    else:
+        env['RC_CMD'] = os.path.join(sdk,'bin','x86','rc.exe')
+        if not _path_check_rc_cmd(env):
+            env['RC_CMD'] = os.path.join(sdk,'bin','rc.exe')
+
+    return _path_check_rc_cmd(env)
+
+
+def _find_rc_cmd(env):
+    """Finding the rc executable is a bit of a nightmare.
+    
+     In MSVS2005(VC8):
+         C:/Program Files (x86)/Microsoft Visual Studio 8/VC
+             bin/rc.exe  
+           or
+             PlatformSDK/Bin/win64/AMD64/rc.exe
+       which is $VCINSTALLDIR/bin or 
+                $VCINSTALLDIR/PlatformSDK/bin/win64/AMD64
+       We do not bother attempting to find that version of rc.
+       Put it on your path or set env['RC_CMD'] if you need it.
+    
+     In MSVS2008(VC9), MSVS2010 (VC10) and MSVS2012 (VC11):
+       have rc.exe in the SDK directory, though the location varies
+       a little for the 32b version.
+    """
+    sdks = []
+    if 'WindowsSdkDir' in env:
+        sdks.append(env['WindowsSdkDir'])
+    elif 'WindowsSdkDir' in os.environ:
+        sdks.append(os.environ['WindowsSdkDir'])
+    else:
+        # hope the user puts the location of RC on their PATH
+        env['RC_CMD'] = 'rc' 
+        return
+
+    if 'rc_winkit' in env: # set up by msvs.py for dev14
+        sdks.append(env['rc_winkit'])
+    
+    for k in sdks:
+        if _check_set_rc(env,k):
+            return
+
+    if env['host_cpu'] == 'x86-64':
+        die("Could not find 64b RC command in SDK directory")
+    else:
+        die("Could not find 32b RC command in SDK directory")
+
 
 def set_env_ms(env):
     """Example of setting up the MSVS environment for compilation"""
@@ -350,48 +405,10 @@ def set_env_ms(env):
                                           '9':'' })
     env['RCFLAGS'] = " %(rcnologo)s"
 
-    # Finding the rc executable is a bit of a nightmare.
-    #
-    # In MSVS2005(VC8):
-    #     C:/Program Files (x86)/Microsoft Visual Studio 8/VC
-    #         bin/rc.exe  
-    #       or
-    #         PlatformSDK/Bin/win64/AMD64/rc.exe
-    #   which is $VCINSTALLDIR/bin or 
-    #            $VCINSTALLDIR/PlatformSDK/bin/win64/AMD64
-    #   We do not bother attempting to find that version of rc.
-    #   Put it on your path or set env['RC_CMD'] if you need it.
-    #
-    # In MSVS2008(VC9), MSVS2010 (VC10) and MSVS2012 (VC11):
-    #   have rc.exe in the SDK directory, though the location varies
-    #   a little for the 32b version.
 
     if env['RC_CMD'] == '':
-        if 'WindowsSdkDir' in env:
-            sdk = env['WindowsSdkDir']
-        elif 'WindowsSdkDir' in os.environ:
-            sdk = os.environ['WindowsSdkDir']
-        else:
-            sdk = 'unknown-sdk-dir'
-            # and hope the user puts it on their PATH
-            env['RC_CMD'] = 'rc' 
+        _find_rc_cmd(env)
 
-        # if we have no valid sdk dir, we won't die trying to 
-        # find the rc.exe.
-        if sdk != 'unknown-sdk-dir':
-            if env['host_cpu'] == 'x86-64':
-                env['RC_CMD'] = os.path.join(sdk,'bin','x64','rc.exe')
-                if not os.path.exists(env.expand('%(RC_CMD)s')):
-                    die("Could not find 64b RC command in SDK directory")
-            else:
-                env['RC_CMD'] = os.path.join(sdk,'bin','x86','rc.exe')
-                if not os.path.exists(env.expand('%(RC_CMD)s')):
-                    env['RC_CMD'] = os.path.join(sdk,'bin','rc.exe')
-                if not os.path.exists(env.expand('%(RC_CMD)s')):
-                    die("Could not find 32b RC command in SDK directory")
-
-    # RC lives in the SDK. Counting on the msvs.py setup to
-    # put it on the PATH. FIXME
     if env['RC'] == '':
         env['RC']  = quote('%(RC_CMD)s')
 

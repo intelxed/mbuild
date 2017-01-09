@@ -19,6 +19,7 @@
 #END_LEGAL
 
 import sys
+import find
 import mbuild
 
 env = mbuild.env_t()
@@ -27,6 +28,10 @@ env.parse_args()
 if 'clean' in env['targets']:
     mbuild.remove_tree(env['build_dir'])
     sys.exit(0)    
+if not env.on_linux():
+    print "This is a linux only test"   
+    sys.exit(0)    
+
 mbuild.cmkdir(env['build_dir'])
 env['LINK'] = env['CC'] # not g++ for this program
     

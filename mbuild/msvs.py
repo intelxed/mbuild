@@ -73,6 +73,12 @@ def add_to_front_list(v,s):
 
 def add_env(v,s):
     """Add v=v;old_vs to the shell environment. Inserts at front"""
+    if 0:
+        if os.path.exists(s):
+	   tag = "GOOD"
+        else:
+	   tag = "BAD"
+        print "{} {}".format(tag,s)
     v.insert(0,s)
 ########################################################################
 
@@ -632,20 +638,7 @@ def _set_msvs_dev12(env, x64_host, x64_target, regv=None): # msvs2013
     return    prefix + "/VC"
 
 
-
-
-def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
-    progfi = 'C:/Program Files (x86)'
-    if regv:
-        prefix = regv
-    else:
-        prefix = progfi + '/Microsoft Visual Studio 14.0'
-
-    sdk81a = progfi + '/Microsoft SDKs/Windows/v8.1A'
-    sdk81  = progfi + '/Microsoft SDKs/Windows/v8.1'
-    winkit = progfi + '/Windows Kits/8.1'
-    winkit10 = progfi + '/Windows Kits/10'
-
+def _get_winkit10_version(env, winkit10):
     # Find the UCRT Version. Could not locate a registry entry with
     # the information. Preview version of msvs2015/dev14 did not set
     # the env var. Poke around in the directory system as a last
@@ -653,7 +646,7 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
     winkit10version = None
     if 'UCRTVersion' in os.environ:
         winkit10version = os.environ['UCRTVersion']
-    if not winkit10version:
+    if winkit10 and not winkit10version:
         # use glob and find youngest directory
         ctime = 0
         for g in glob(winkit10 + '/include/*'):
@@ -663,9 +656,67 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
                     winkit10version = os.path.basename(g)
                     ctime = gtime
     if not winkit10version:
-        die("Did not find winkit 10 version")
+        warn("Did not find winkit 10 version. RC tool may not be available")
     msgb("UCRT Version", winkit10version)
-       
+
+    # Early versions of winkit10 that ship with MSVS2015(dev14) do not
+    # have the the required stuff so people had to rely on SDK
+    # 8.1. The early versions only have a ucrt subdirectory and not a
+    # "shared", "um" or "winrt" directories. We pick the "shared"
+    # directory as our guide. I could also use the version number but
+    # I have no way of knowing all the verion numbers people might
+    # have.  (In my limited experience, I've seen only 3 so far).
+    complete = True
+    if not os.path.exists('{}/include/{}/shared'.format(winkit10, winkit10version)):
+        complete = False
+    return (winkit10version,complete)
+
+def _find_latest_subdir(d):
+    ctime = 0
+    for g in glob(d + '*'):
+        gtime = os.path.getctime(g)
+	if gtime > ctime:
+	    ctime = gtime
+	    subdir = g
+    return subdir
+
+
+def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
+    progfi = 'C:/Program Files (x86)'
+    if regv:
+        prefix = regv
+    else:
+        prefix = progfi + '/Microsoft Visual Studio 14.0'
+        
+    sdk81a = progfi + '/Microsoft SDKs/Windows/v8.1A'
+    sdk81  = progfi + '/Microsoft SDKs/Windows/v8.1'
+    sdk10a = progfi + '/Microsoft SDKs/Windows/v10.0A'
+    if os.path.exists(sdk10a):
+        sdek81a = None
+        sdek81 = None
+    else:
+        sdk10a = None
+        
+    winkit8 = progfi + '/Windows Kits/8.1'
+    winkit10 = progfi + '/Windows Kits/10'
+
+    if os.path.exists(winkit10):
+        winkit = winkit10
+        sdk81 = None
+        sdk81a = None
+    else:
+        winkit = winkit8
+        winkit10 = None
+
+    winkit10version, winkit10complete = _get_winkit10_version(env,winkit10)
+    # if winkit10complete is False, we need to fall back on 
+    # winkit8 for some stuff
+
+    if winkit10complete:
+        env['rc_winkit'] = winkit10
+    else:
+        env['rc_winkit'] = winkit8
+
     path = []
     lib = []
     libpath = []
@@ -673,31 +724,47 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
     inc  = []
     add_env(inc, prefix + '/VC/INCLUDE')
     add_env(inc, prefix + '/VC/ATLMFC/INCLUDE')
-    add_env(inc, winkit + '/include') # not used in msvs12
-    
-    add_env(inc, winkit10 + '/include/{}/ucrt'.format(winkit10version)) 
-    add_env(inc, winkit + '/include/shared')
-    add_env(inc, winkit + '/include/um')
-    add_env(inc, winkit + '/include/winrt')
+
+    if winkit10version:
+        t = '{}/include/{}'.format(winkit10,winkit10version)
+        add_env(inc, t + '/ucrt')
+
+    if winkit10version and winkit10complete:
+        add_env(inc, t + '/shared')
+        add_env(inc, t + '/um')
+        add_env(inc, t + '/winrt')
+    else:
+        add_env(inc, winkit8 + '/include') # not used in msvs12
+        add_env(inc, winkit8 + '/include/shared')
+        add_env(inc, winkit8 + '/include/um')
+        add_env(inc, winkit8 + '/include/winrt')
+
     set_env_list('INCLUDE',inc)
 
-    set_env('Framework40Version','v4.0')
-    set_env('FrameworkVersion',   'v4.0.30319')
-    set_env('ExtensionSdkDir', 
-                   sdk81  + '/ExtensionSDKs')
+    set_env('Framework40Version', 'v4.0')
+    set_env('FrameworkVersion',  'v4.0.30319')
+    #set_env('ExtensionSdkDir', sdk81  + '/ExtensionSDKs')
 
     set_env('VCINSTALLDIR', prefix + '/VC/')
     set_env('VS140COMNTOOLS', prefix + '/Common7/Tools')
     set_env('VSINSTALLDIR' , prefix)
-    set_env('WindowsSdkDir', winkit)
+    set_env('WindowsSdkDir', winkit  + '/')
     set_env('VisualStudioVersion','14.0')
 
-    set_env('WindowsSDK_ExecutablePath_x86',
-            sdk81a + '/bin/NETFX 4.5.1 Tools/')
-
+    if sdk10a:
+        set_env('WindowsSDK_ExecutablePath_x86',
+                sdk10a + '/bin/NETFX 4.6.1 Tools/')
+    else:
+        set_env('WindowsSDK_ExecutablePath_x86',
+                sdk81a + '/bin/NETFX 4.5.1 Tools/')
+        
     if x64_target:
-        set_env('WindowsSDK_ExecutablePath_x64',
-                sdk81a +'/bin/NETFX 4.5.1 Tools/x64/')
+        if sdk10a:
+            set_env('WindowsSDK_ExecutablePath_x64',
+                    sdk10a +'/bin/NETFX 4.6.1 Tools/x64/')
+        else:
+            set_env('WindowsSDK_ExecutablePath_x64',
+                    sdk81a +'/bin/NETFX 4.5.1 Tools/x64/')
 
         set_env('FrameworkDir','c:/WINDOWS/Microsoft.NET/Framework64')
         set_env('FrameworkDIR64','c:/WINDOWS/Microsoft.NET/Framework64')
@@ -707,15 +774,22 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
 
         add_env(lib, prefix  + '/VC/LIB/amd64')
         add_env(lib, prefix  + '/VC/ATLMFC/LIB/amd64')
-        add_env(lib,  winkit10 + '/lib/{}/ucrt/x64'.format(winkit10version))
-        add_env(lib, winkit + '/lib/winv6.3/um/x64')
+        if winkit10version:
+            add_env(lib,  winkit10 + '/lib/{}/ucrt/x64'.format(winkit10version))
+        if winkit10version and winkit10complete:
+            add_env(lib,  winkit10 + '/lib/{}/um/x64'.format(winkit10version))
+        else:
+            add_env(lib, winkit8 + '/lib/winv6.3/um/x64')
 
         add_env(libpath, 'c:/WINDOWS/Microsoft.NET/Framework64/v4.0.30319')
         add_env(libpath, prefix + '/VC/LIB/amd64')
         add_env(libpath, prefix + '/VC/ATLMFC/LIB/amd64')
-        add_env(libpath, winkit + '/References/CommonConfiguration/Neutral')
-        add_env(libpath, sdk81 + '/ExtensionSDKs/Microsoft.VCLibs/14.0/' + 
-                'References/CommonConfiguration/neutral')
+        if not winkit10:
+            add_env(libpath, winkit + '/References/CommonConfiguration/Neutral')
+        # next one is usually not present and I am unclear of value/need
+        #if sdk81:
+        #    add_env(libpath, sdk81 + '/ExtensionSDKs/Microsoft.VCLibs/14.0/' + 
+        #            'References/CommonConfiguration/neutral')
 
         add_env(path, prefix + '/Common7/IDE/CommonExtensions/Microsoft/TestWindow')
         add_env(path,  prefix + '/VC/BIN/amd64')
@@ -727,29 +801,43 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
         add_env(path, 'C:/Program Files (x86)/HTML Help Workshop')
         add_env(path, prefix + '/Team Tools/Performance Tools/x64')
         add_env(path, prefix + '/Team Tools/Performance Tools')
-        add_env(path, winkit  + '/8.1/bin/x64')
-        add_env(path, winkit  + '/8.1/bin/x86')
-        add_env(path, sdk81a + '/bin/NETFX 4.5.1 Tools/x64')
-        add_env(path, winkit + '/Windows Performance Toolkit')
+        
+        if winkit10complete:
+            t = winkit10
+        else:
+            t = winkit8
+        add_env(path, t  + '/bin/x64')
+        add_env(path, t  + '/bin/x86')
+            
+        if sdk10a:
+	    b = _find_latest_subdir(sdk10a + '/bin/')
+            add_env(path, b + '/x64')
+        else:
+            add_env(path, sdk81a + '/bin/NETFX 4.5.1 Tools/x64')
 
-
-    else:
+    else: # 32b
         set_env('FrameworkDir', 'c:/WINDOWS/Microsoft.NET/Framework')
         set_env('FrameworkDIR32', 'c:/WINDOWS/Microsoft.NET/Framework')
         set_env('FrameworkVersion32','v4.0.30319')
 
         add_env(lib,  prefix + '/VC/LIB')
         add_env(lib,  prefix + '/VC/ATLMFC/LIB')
-        add_env(lib,  winkit10 + '/lib/{}/ucrt/x86'.format(winkit10version))
-        add_env(lib,  winkit + '/lib/winv6.3/um/x86')
+        if winkit10version:
+            add_env(lib,  winkit10 + '/lib/{}/ucrt/x86'.format(winkit10version))
+        if winkit10version and winkit10complete:
+            add_env(lib,  winkit10 + '/lib/{}/um/x86'.format(winkit10version))
+        else:
+            add_env(lib,  winkit8 + '/lib/winv6.3/um/x86')
         
         add_env(libpath,  'c:/WINDOWS/Microsoft.NET/Framework/v4.0.30319')
         add_env(libpath,  prefix  + '/VC/LIB')
         add_env(libpath,  prefix  + '/VC/ATLMFC/LIB')
-        add_env(libpath,  winkit  + '/References/CommonConfiguration/Neutral')
-        add_env(libpath,  sdk81  + '/ExtensionSDKs/Microsoft.VCLibs/14.0/' + 
-                'References/CommonConfiguration/neutral')
-
+        if not winkit10complete:
+            add_env(libpath,  winkit8  + '/References/CommonConfiguration/Neutral')
+        # next one is usually not present and I am unclear of value/need
+        #if sdk81:
+        #    add_env(libpath,  sdk81  + '/ExtensionSDKs/Microsoft.VCLibs/14.0/' + 
+        #            'References/CommonConfiguration/neutral')
 
         add_env(path, prefix + '/Common7/IDE/CommonExtensions/Microsoft/TestWindow')
         add_env(path, progfi + '/Microsoft SDKs/F#/3.1/Framework/v4.0')
@@ -761,9 +849,18 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
         add_env(path, prefix + '/VC/VCPackages')
         add_env(path, progfi + '/HTML Help Workshop')
         add_env(path, prefix + '/Team Tools/Performance Tools')
-        add_env(path, winkit + '/bin/x86')
-        add_env(path, sdk81a + '/bin/NETFX 4.5.1 Tools')
-        add_env(path, winkit + '/Windows Performance Toolkit')
+
+        if winkit10complete:
+            t = winkit10
+        else:
+            t = winkit8
+        add_env(path, t  + '/bin/x86')
+
+        if sdk10a:
+	    b = _find_latest_subdir(sdk10a + '/bin/')
+            add_env(path, b + '/x64')
+        else:
+            add_env(path, sdk81a + '/bin/NETFX 4.5.1 Tools')
 
 
     set_env_list('LIBPATH',libpath)

@@ -19,6 +19,7 @@
 #END_LEGAL
 
 import sys
+import find
 import mbuild
 
 env = mbuild.env_t()
