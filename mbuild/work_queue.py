@@ -2,7 +2,7 @@
 # Mark Charney 
 #BEGIN_LEGAL
 #
-#Copyright (c) 2016 Intel Corporation
+#Copyright (c) 2017x Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -428,7 +428,6 @@ class command_t(object):
       status and output.
 
       Sets the exit_status, output and stderr error fields of the
-
       command object.
       """
       self.executed = True
@@ -472,11 +471,11 @@ class command_t(object):
                    # execute timed_cmd_t objects
                    (self.exit_status, output, stderr) = \
                             run_command_timed(cmd,
-                            shell_executable=self.shell_executable,
-                            directory = self.directory,
-                            osenv = self.osenv,
-                            seconds=self.timeout,
-                            input_file_name = self.input_file_name)               
+                                              shell_executable=self.shell_executable,
+                                              directory = self.directory,
+                                              osenv = self.osenv,
+                                              seconds=self.timeout,
+                                              input_file_name = self.input_file_name)               
                    self._extend_output_stderr(output, stderr)
                       
             else:
