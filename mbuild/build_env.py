@@ -2,7 +2,7 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2016 Intel Corporation
+#Copyright (c) 2017 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -201,8 +201,6 @@ def set_env_gnu(env):
         env['LIBEXT'] = '.a'
         env['PDBEXT'] = ''
 
-
-
 def find_ms_toolchain(env):
     if env['msvs_version']:
         env['setup_msvc']=True
@@ -228,25 +226,23 @@ def find_ms_toolchain(env):
             if os.path.exists(vs_dir):
                 env['vc_dir'] = vs_dir
 
+    # Before DEV15, the VCINSTALLDIR was sufficient to find the
+    # compiler. But with DEV15, they locate the compiler more deeply
+    # in to the file system and we need more information including the
+    # build number. The DEV15 installation sets the env var
+    # VCToolsInstallDir with that information.  The headers and
+    # libraries change location too so relying on VCINTALLDIR is
+    # insufficient.  So if people run with (1) mbuild's setup of DEV15
+    # or (2) the MSVS command prompt, they should be fine. But
+    # anything else is probably questionable.
+    
     if env['vc_dir'] == '' or env['setup_msvc']:
         env['vc_dir'] = msvs.set_msvs_env(env)
 
     # toolchain is the bin directory of the compiler with a trailing slash
     if env['toolchain'] == '' and env['vc_dir'] and env['compiler']=='ms':
-        toolchain = ''
-        if env['build_cpu'] == 'ia32' and env['host_cpu'] == 'ia32':
-            toolchain = os.path.join(env['vc_dir'], 'bin', '')
-        elif env['build_cpu'] == 'ia32' and env['host_cpu'] == 'x86-64':
-            toolchain = os.path.join(env['vc_dir'], 'bin', 'x86_amd64', '')
-        elif env['build_cpu'] == 'x86-64' and env['host_cpu'] == 'x86-64':
-            toolchain = os.path.join(env['vc_dir'], 'bin', 'amd64', '')
-        elif env['build_cpu'] == 'x86-64' and env['host_cpu'] == 'ia32':
-            toolchain = os.path.join(env['vc_dir'], 'bin', '')
-        elif env['compiler'] == 'ms':
-            die("Unknown build/target combination. build cpu=%s, " + 
-                "host_cpu=%s" % ( env['build_cpu'], env['host_cpu']))
+        env['toolchain'] = msvs.pick_compiler(env)
 
-        env['toolchain'] = toolchain  # default toolchain that we discover
 
         
 def _check_set_rc(env, sdk):
@@ -376,8 +372,6 @@ def set_env_ms(env):
     env['PDBEXT'] = '.pdb'
     env['RCEXT']  = '.rc'
     env['RESEXT'] = '.res'
-
-
 
     find_ms_toolchain(env)
     
