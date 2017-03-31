@@ -1,7 +1,7 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2016 Intel Corporation
+#Copyright (c) 2017 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -671,6 +671,18 @@ def _get_winkit10_version(env, winkit10):
         complete = False
     return (winkit10version,complete)
 
+def _find_msvc_version_directory(root):
+    ctime = 0
+    msvc_ver = None
+    for g in glob(root + '/*'):
+        gtime = os.path.getctime(g)
+        if gtime > ctime:
+            msvc_ver = os.path.basename(g)
+            ctime = gtime
+    if not msvc_ver:
+        die("Could not find MSVC version directory.")
+    return msvc_ver
+
 def _find_latest_subdir(d):
     ctime = 0
     for g in glob(d + '*'):
@@ -679,7 +691,203 @@ def _find_latest_subdir(d):
 	    ctime = gtime
 	    subdir = g
     return subdir
+def _ijoin(x,y):
+    return '{}/{}'.format(x,y)
 
+def msvc_dir_from_vc_dir(vc_dir):
+    msvc_tools_root = vc_dir + '/Tools/MSVC'
+    msvc_ver = _find_msvc_version_directory(msvc_tools_root)
+    msvc_tools_root = _ijoin(msvc_tools_root,msvc_ver)
+    #msgb('MSVC version', msvc_tools_root)
+    return msvc_tools_root, msvc_ver
+
+
+def _set_msvs_dev15(env, x64_host, x64_target, regv=None): # msvs 2017
+    versions = ['Enterprise', 'Professional', 'Community']
+    
+    progfi = 'C:/Program Files (x86)'
+    if regv:
+        prefix = regv
+    else:
+        prefix = progfi + '/Microsoft Visual Studio/2017'
+
+    if x64_target:
+        tgt = 'x64'
+    else:
+        tgt = 'x86'
+
+    found = False
+    for v in versions:
+        p = _ijoin(prefix,v)
+        if os.path.exists(p):
+            found = True
+            break
+    if not found:
+        die('Could not find MSVS 2017 directory')
+    vprefix = p
+    #msgb('VPREFIX', vprefix)
+    winkit10 = progfi + '/Windows Kits/10'    
+    winkit10version, winkit10complete = _get_winkit10_version(env,winkit10)
+    #msgb('WINKIT10 VERSION', winkit10version)
+    if winkit10complete == False:
+        die('need a complete winkit10 for MSVS 2017 (dev 15)')
+    env['rc_winkit'] = winkit10
+
+    msvc_tools_root, msvc_ver = msvc_dir_from_vc_dir(vprefix + '/VC')
+    
+    netfx_sdk = progfi + '/Windows Kits/NETFXSDK/4.6.1/'
+    
+    path = []
+    lib = []
+    libpath = []
+    inc  = []
+    
+    add_env(inc, prefix + '/ATLMFC/include')
+    add_env(inc, msvc_tools_root + '/include')
+    add_env(inc, netfx_sdk + 'include/um')
+    wki = '{}/include/{}'.format(winkit10, winkit10version)
+    add_env(inc, wki + '/ucrt')
+    add_env(inc, wki + '/shared')
+    add_env(inc, wki + '/um')
+    add_env(inc, wki + '/winrt')
+
+    # LIB
+    wkl = '{}/lib/{}'.format(winkit10, winkit10version)
+    lib1 = '{}/ATLMFC/lib/{}'.format(msvc_tools_root,tgt)
+    lib2 = '{}/lib/{}'.format(msvc_tools_root,tgt)
+    add_env(lib, lib1)
+    add_env(lib, lib2)
+    add_env(lib, '{}lib/um/{}'.format(netfx_sdk,tgt))
+    add_env(lib, '{}/ucrt/{}'.format(wkl,tgt))
+    add_env(lib, '{}/um/{}'.format(wkl,tgt))
+
+    # LIBPATH
+    add_env(libpath, lib1)
+    add_env(libpath, lib2)
+    add_env(libpath, winkit10 + '/UnionMetadata')
+    add_env(libpath, winkit10 + '/References')
+    s = ''
+    if tgt == 'x64':
+        s = '64'
+    fwr = 'C:/windows/Microsoft.NET/Framework{}'.format(s)
+    fwr64 = 'C:/windows/Microsoft.NET/Framework64'
+    fwv = 'v4.0.30319'
+    fwp = '{}/{}'.format(fwr,fwv)
+    add_env(libpath, fwp)
+
+    # PATH
+
+    # locations for cross compilers changed in this version
+    x64_to_x64 = '{}/bin/Host{}/{}'.format(msvc_tools_root,'x64','x64')
+    x64_to_x86 = '{}/bin/Host{}/{}'.format(msvc_tools_root,'x64','x86')
+    x86_to_x64 = '{}/bin/Host{}/{}'.format(msvc_tools_root,'x86','x64')
+    x86_to_x86 = '{}/bin/Host{}/{}'.format(msvc_tools_root,'x86','x86')
+    slash = '/'
+    env['msvc_compilers'] = {}
+    env['msvc_compilers']['ia32'] = {}
+    env['msvc_compilers']['x86-64'] = {}
+    env['msvc_compilers']['ia32']['ia32'] =  x86_to_x64 + slash
+    env['msvc_compilers']['ia32']['x86-64'] = x86_to_x86 + slash
+    env['msvc_compilers']['x86-64']['ia32'] = x64_to_x86  + slash
+    env['msvc_compilers']['x86-64']['x86-64'] = x64_to_x64 + slash
+
+    cross = False
+    if x64_host:
+        if x64_target:
+            cl_tgt_bin_dir = x64_to_x64
+        else:
+            cross = True
+            cl_tgt_bin_dir = x64_to_x86
+            cl_host_bin_dir = x64_to_x64
+    else: 
+        if x64_target:
+            cross = True
+            cl_tgt_bin_dir = x86_to_x64
+            cl_host_bin_dir = x64_to_x86
+        else:
+            cl_tgt_bin_dir = x86_to_x86
+    
+    add_env(path, cl_tgt_bin_dir)
+    # CL TARGET compiler gets DLLs from the HOST bin dir
+    if cross:
+        add_env(path, cl_host_bin_dir)
+        
+    add_env(path, '{}/Common7/IDE/VC/VCPackages'.format(msvc_tools_root))
+    add_env(path, '{}/Common7/IDE/CommonExtensions/Microsoft/TestWindow'.format(msvc_tools_root))
+    add_env(path, '{}/Common7/IDE/CommonExtensions/Microsoft/TeamFoundation/Team Explorer'.format(msvc_tools_root))
+    add_env(path, '{}/MSBuild/15.0/bin/Roslyn'.format(msvc_tools_root))
+    add_env(path, '{}/Team Tools/Performance Tools'.format(msvc_tools_root))
+    
+    add_env(path, progfi + '/Microsoft Visual Studio/Shared/Common/VSPerfCollectionTools')
+    netfx_tools = progfi + '/Microsoft SDKs/Windows/v10.0A/bin/NETFX 4.6.1 Tools'
+    add_env(path, netfx_tools)
+
+    add_env(path, '{}/bin/{}'.format(winkit10,tgt))
+    add_env(path, '{}/bin/{}/{}'.format(winkit10,winkit10version,tgt))
+    add_env(path, '{}/MSBuild/15.0/bin'.format(vprefix))
+    add_env(path, fwp)
+    add_env(path, '{}/Common7/IDE'.format(vprefix))
+    add_env(path, '{}/Common7/Tools'.format(vprefix))
+
+    set_env_list('INCLUDE',inc)
+    set_env_list('LIB',lib)
+    set_env_list('LIBPATH',libpath)
+    add_to_front_list('PATH',path)
+    if 0:
+        msgb("INCLUDE", "\n\t".join(inc))
+        msgb("LIB", "\n\t".join(lib))
+        msgb("LIBPATH", "\n\t".join(libpath))
+        msgb("PATH", "\n\t".join(path))
+
+    # Misc env variables. Not sure which are needed, if any
+    set_env('NETFXSDKDir',netfx_sdk)
+    set_env('DevEnvDir', vprefix + '/Common7/IDE/')
+    set_env('ExtensionSdkDir', progfi + '/Microsoft SDKs/Windows Kits/10/ExtensionSDKs')
+    set_env('Framework40Version','v4.0')
+    set_env('FrameworkVersion',fwv)
+    if x64_host:
+        set_env('VSCMD_ARG_HOST_ARCH','x64')
+    else:
+        set_env('VSCMD_ARG_HOST_ARCH','x86')
+        
+    set_env('Platform',tgt)
+    set_env('VSCMD_ARG_TGT_ARCH',tgt)
+        
+    if x64_target:
+        set_env('FrameworkDir', fwr)
+        set_env('FrameworkDIR64',fwr)
+        set_env('FrameworkVersion64',fwv)
+    else: 
+        set_env('FrameworkDIR32',fwr)
+        set_env('FrameworkVersion32',fwv)
+        if x64_host:
+            set_env('FrameworkDir', fwr64)
+            set_env('FrameworkDIR64',fwr64)
+            set_env('FrameworkVersion64',fwv)
+        else:
+            set_env('FrameworkDir', fwr)
+        
+    set_env('UCRTVersion',          winkit10version)
+    set_env('WindowsSDKLibVersion', winkit10version + '/')
+    set_env('WindowsSDKVersion',    winkit10version + '/')
+    set_env('WindowsSdkVerBinPath', '{}/bin/{}/'.format(winkit10,winkit10version))
+    set_env('WindowsSdkBinPath', winkit10 + '/bin/')
+    set_env('WindowsSdkDir',     winkit10 + '/')
+    set_env('UniversalCRTSdkDir',winkit10 + '/')
+    set_env('WindowsLibPath',    winkit10 + '/UnionMetadata;' + winkit10 + '/References')
+    
+    set_env('VCIDEInstallDir',   vprefix + '/Common7/IDE/VC/')
+    set_env('VCINSTALLDIR',      vprefix + '/VC/')
+    set_env('VCToolsInstallDir', vprefix + '/VC/Tools/MSVC/' + msvc_ver + '/')
+    set_env('VCToolsRedistDir',  vprefix + '/VC/Redist/MSVC/' + msvc_ver + '/')
+    set_env('VS150COMNTOOLS',    vprefix + '/Common7/Tools/')
+    set_env('VSINSTALLDIR',      vprefix + '/')
+    set_env('VisualStudioVersion', '15.0')
+        
+    set_env('WindowsSDK_ExecutablePath_x64', netfx_tools + '/x64/')
+    set_env('WindowsSDK_ExecutablePath_x86', netfx_tools + '/')
+    
+    return vprefix + '/VC'
 
 def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
     progfi = 'C:/Program Files (x86)'
@@ -870,8 +1078,16 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
     return    prefix + "/VC"
 
 
-def _try_to_figure_out_msvs_version(env):
-    prefixes = [ 
+def _figure_out_msvs_version_filesystem(env, specific_version=0):
+    """If specific_version is set to one of the listed versions, this will
+    only return success if that version is found. Otherwise it returns
+    the latest install. """
+    
+    prefixes = [
+        # starting with DEV15, everything is in the "Program Files
+        # (x86)" directory.
+        (15,'C:/Program Files (x86)/Microsoft Visual Studio/2017'),
+        
         (14,'C:/Program Files (x86)/Microsoft Visual Studio 14.0'),
         (14,'C:/Program Files/Microsoft Visual Studio 14.0'),
         
@@ -892,14 +1108,15 @@ def _try_to_figure_out_msvs_version(env):
         
         (7, "c:/Program Files/Microsoft Visual Studio .NET 2003"),
         (7,"c:/Program Files (x86)/Microsoft Visual Studio .NET 2003")
-
     ]
     for v,dir in prefixes:
-        #print dir
         if os.path.exists(dir):
-            #print 'FOUND', dir
-            return str(v)
-    return '' # we don't know
+            if specific_version:
+                if specific_version == v:
+                    return str(v)
+            else:
+                return str(v)
+    return None # we don't know
 
 def _read_registry(root,key,value):
     import _winreg
@@ -915,7 +1132,28 @@ def _read_registry(root,key,value):
     _winreg.CloseKey(hkey)
     return val
 
-def find_msvc(env,version):
+def pick_compiler(env):
+    if env['msvs_version']:
+        if int(env['msvs_version']) >= 15:
+            compilers_dict = env['msvc_compilers']
+            return compilers_dict[env['build_cpu']][env['host_cpu']]
+    return _pick_compiler_until_dev14(env)
+    
+def _pick_compiler_until_dev14(env):
+    if env['build_cpu'] == 'ia32' and env['host_cpu'] == 'ia32':
+        toolchain = os.path.join(env['vc_dir'], 'bin', '')
+    elif env['build_cpu'] == 'ia32' and env['host_cpu'] == 'x86-64':
+        toolchain = os.path.join(env['vc_dir'], 'bin', 'x86_amd64', '')
+    elif env['build_cpu'] == 'x86-64' and env['host_cpu'] == 'x86-64':
+        toolchain = os.path.join(env['vc_dir'], 'bin', 'amd64', '')
+    elif env['build_cpu'] == 'x86-64' and env['host_cpu'] == 'ia32':
+        toolchain = os.path.join(env['vc_dir'], 'bin', '')
+    elif env['compiler'] == 'ms':
+        die("Unknown build/target combination. build cpu=%s, " + 
+            "host_cpu=%s" % ( env['build_cpu'], env['host_cpu']))
+    return toolchain
+
+def _find_msvc_in_registry(env,version):
     import _winreg
     vs_ver = str(version) + '.0'
     vs_key = 'SOFTWARE\\Microsoft\\VisualStudio\\' + vs_ver + '\\Setup\\VS'
@@ -936,10 +1174,12 @@ def find_msvc(env,version):
                                 vc_key, 'ProductDir')
     return (vs_dir,vc_dir)
 
-def _try_to_figure_out_msvs_version_registry(env):
+def _figure_out_msvs_version_registry(env):
+    # starting with DEV15 (MSVS2017) MS stopped using the
+    # registry to store installation information.
     versions = [14,12,11,10,9,8,7,6]
     for v in versions:
-        (vs_dir,vc_dir) = find_msvc(env,v)
+        (vs_dir,vc_dir) = _find_msvc_in_registry(env,v)
         if vs_dir and vc_dir:
             return (str(v),vs_dir)
     return (None,None)
@@ -952,46 +1192,70 @@ def set_msvs_env(env):
     x64_host = False
     if  env['build_cpu'] == 'x86-64':
         x64_host=True
-
-    # "express" compiler is 32b only
-    vc = None
+        
     # Verify validity of chosen msvs_version in registry
-    if env['msvs_version'] != '' :
-        v = int(env['msvs_version'])
-        (vs_dir,vc_dir) = find_msvc(env,v)
-        if not (vs_dir and vc_dir):
-            warn("Could no find specified version of MSVS. Looking around...")
-            env['msvs_version'] = '' 
-    if env['msvs_version'] == '':
-        # The chosen msvs_version was not valid we need to search for it
-        env['msvs_version'] = _try_to_figure_out_msvs_version(env)
-    # FIXME: could add a knob to just use registry..
-    if env['msvs_version'] == '':
-        env['msvs_version'], vs_dir = \
-            _try_to_figure_out_msvs_version_registry(env)
-        if env['msvs_version'] == None:
-            die("Did not find MSVS version!")             
 
+    uv =  0  # user version or 0 if no user version specified
+    if env['msvs_version'] != '' :
+        uv = int(env['msvs_version'])
+
+    # SEARCH FOUR WAYS
+    found = False
+    if uv:
+        # 1. look for specific version in registry
+        if uv < 15:
+            (vs_dir,vc_dir) = _find_msvc_in_registry(env,uv)
+            if vs_dir and vc_dir:
+                found = True
+            else:
+                warn("Could not find specified version of MSVS in registry.")
+            
+        # 2. look in file system for specific version
+        if not found:
+            env['msvs_version'] = _figure_out_msvs_version_filesystem(env, uv)
+            if env['msvs_version']:
+                found = True
+            else:
+                die("Could not find specified version of MSVS in file system.")               
+
+    # 3. Trying to locate newest version in file system. Must do this
+    # before generic registry search because regitry stopped being
+    # updated with DEV15/MSVS2017.
+    if not found:
+        env['msvs_version'] = _figure_out_msvs_version_filesystem(env)
+        if env['msvs_version']:
+            found = True
+
+    # 4. try latest version in registry
+    if not found:
+        env['msvs_version'], vs_dir = _figure_out_msvs_version_registry(env)
+        
+    if not env['msvs_version']:
+        die("Did not find MSVS version!")
+            
+    # "express" compiler is 32b only            
+    vc = None
     vs_dir = None
     i = int(env['msvs_version'])
     if i == 6: # 32b only
         vc = _set_msvs_dev6(env,x64_host, x64_target)
     elif i == 7: # 32b only
         vc = _set_msvs_dev7(env,x64_host, x64_target)
-
-    elif i == 8: # 32b or 64b
+    elif i == 8: 
         vc = _set_msvs_dev8(env, x64_host, x64_target, vs_dir)
-    elif i == 9: # 32b or 64b
+    elif i == 9: 
         vc = _set_msvs_dev9(env, x64_host, x64_target, vs_dir)
-    elif i == 10: # 32b or 64b
+    elif i == 10:
         vc = _set_msvs_dev10(env, x64_host, x64_target, vs_dir)
-    elif i == 11: # 32b or 64b
+    elif i == 11: 
         vc = _set_msvs_dev11(env, x64_host, x64_target, vs_dir)
-    elif i == 12: # 32b or 64b
+    elif i == 12: 
         vc = _set_msvs_dev12(env, x64_host, x64_target, vs_dir)
     # And 12 shall be followed by 14. 13? 13 is Right Out!
-    elif i == 14: # 32b or 64b
+    elif i == 14: 
         vc = _set_msvs_dev14(env, x64_host, x64_target, vs_dir)
+    elif i == 15: 
+        vc = _set_msvs_dev15(env, x64_host, x64_target, vs_dir)
     else:
         die("Unhandled MSVS version: " + env['msvs_version'])
 
