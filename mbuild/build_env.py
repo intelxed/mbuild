@@ -235,14 +235,22 @@ def find_ms_toolchain(env):
     # insufficient.  So if people run with (1) mbuild's setup of DEV15
     # or (2) the MSVS command prompt, they should be fine. But
     # anything else is probably questionable.
-    
+
+    incoming_setup = True # presume system setup by user
     if env['vc_dir'] == '' or env['setup_msvc']:
+        incoming_setup = False
         env['vc_dir'] = msvs.set_msvs_env(env)
 
     # toolchain is the bin directory of the compiler with a trailing slash
-    if env['toolchain'] == '' and env['vc_dir'] and env['compiler']=='ms':
-        env['toolchain'] = msvs.pick_compiler(env)
-
+    if env['toolchain'] == '':
+        if incoming_setup: 
+            # relying on user-setup env (say MSVS cmd.exe or vcvars-equiv bat file)
+            if os.environ['VisualStudioVersion']  == '15.0':
+                env['msvs_version'] = '15'
+                msvs.set_msvc_compilers(env, os.environ['VCToolsInstallDir'])
+        if env['compiler']=='ms':
+            env['toolchain'] = msvs.pick_compiler(env)
+    
 
         
 def _check_set_rc(env, sdk):
