@@ -702,6 +702,8 @@ def msvc_dir_from_vc_dir(vc_dir):
     return msvc_tools_root, msvc_ver
 
 def set_msvc_compilers(env,msvc_tools_root):
+    """set host/target paths for MSVS2017/DEV15. Also called from
+    build_env.py when using an externally configured shell."""
     x64_to_x64 = '{}/bin/Host{}/{}/'.format(msvc_tools_root,'x64','x64')
     x64_to_x86 = '{}/bin/Host{}/{}/'.format(msvc_tools_root,'x64','x86')
     x86_to_x64 = '{}/bin/Host{}/{}/'.format(msvc_tools_root,'x86','x64')
@@ -713,9 +715,6 @@ def set_msvc_compilers(env,msvc_tools_root):
     env['msvc_compilers']['ia32']['x86-64'] = x86_to_x86
     env['msvc_compilers']['x86-64']['ia32'] = x64_to_x86
     env['msvc_compilers']['x86-64']['x86-64'] = x64_to_x64
-    
-def _get_compiler(env,bld,tgt):
-    return env['msvc_compilers'][bld][tgt]
     
 def _set_msvs_dev15(env, x64_host, x64_target, regv=None): # msvs 2017
     versions = ['Enterprise', 'Professional', 'Community']
