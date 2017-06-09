@@ -194,7 +194,7 @@ def _build_doxygen_main(args, env):
     """Customize the doxygen input file. Run the doxygen command, copy
     in any images, and put the output in the right place."""
 
-    if type(args) is types.ListType:
+    if isinstance(args, list):
        if len(args) < 2:
           base.die("Need subs dictionary and  dummy file arg for the doxygen command " +
                      "to indicate its processing")       

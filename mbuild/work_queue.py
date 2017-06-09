@@ -129,7 +129,7 @@ class command_t(object):
       self.id = command_t._ids
       command_t._ids += 1
       # store the command as a list
-      if isinstance(command,types.ListType):
+      if isinstance(command,list):
          self.command = command
       else:
          self.command = [ command ]
@@ -261,7 +261,7 @@ class command_t(object):
       @type n: L{command_t}
       @param n: another (earlier) command
       """
-      if isinstance(n,types.ListType):
+      if isinstance(n,list):
          for x in n:
             self.before_me.append(x)
             x.after_me.append(self)
@@ -274,7 +274,7 @@ class command_t(object):
       @type n: L{command_t}
       @param n: another (later) command
       """
-      if isinstance(n, types.ListType):
+      if isinstance(n, list):
          for x in n:
             self.after_me.append(x)
             x.before_me.append(self)
@@ -329,7 +329,7 @@ class command_t(object):
       for cmd in self.command:
          if isinstance(cmd,types.FunctionType):
             s.append("PYTHON FN: " + cmd.__name__)
-         elif isinstance(cmd,types.StringType):
+         elif isinstance(cmd,bytes):
             s.append(cmd)
          else:
             s.append(str(cmd))
@@ -411,7 +411,7 @@ class command_t(object):
 
    def _extend_output(self,output):
       if output:
-            if isinstance(output,types.ListType):
+            if isinstance(output,list):
                self.output.extend(output)
             else:
                self.output.append(output)
@@ -419,7 +419,7 @@ class command_t(object):
    def _extend_output_stderr(self,output, stderr):
       self._extend_output(output)
       if stderr:
-            if isinstance(stderr,types.ListType):
+            if isinstance(stderr,list):
                self.stderr.extend(stderr)
             else:
                self.stderr.append(stderr)
@@ -450,7 +450,7 @@ class command_t(object):
                (self.exit_status, output) = cmd( self.args, self.xenv )
                self._extend_output(output)
                
-            elif isinstance(cmd,types.StringType):
+            elif isinstance(cmd,bytes):
                # execute command strings
                if self.output_file_name:
                   (self.exit_status, output, stderr) = \
@@ -715,7 +715,7 @@ class work_queue_t(object):
          msgb("ADD CMD", str(type(command)))
 
       if command:
-         if isinstance(command,types.ListType):
+         if isinstance(command,list):
             for c in command:
                if verbose(5):
                   msgb("ADD CMD", str(type(c)))

@@ -339,7 +339,7 @@ class dag_t(object):
 
     def _hash_mixed_list(l):
 
-        if isinstance(l, types.ListType): 
+        if isinstance(l, list): 
             il = l
         else:
             il = [l]
@@ -623,7 +623,7 @@ class dag_t(object):
         nodes = collections.deque() # work list
 
         if targets:
-            if not isinstance(targets, types.ListType): # make it a list
+            if not isinstance(targets, list): # make it a list
                 targets = [ targets ]
             self._find_required_nodes(targets)
         else:
@@ -834,7 +834,7 @@ class dag_t(object):
     def _make_list(self, x): # private
         """Make a list from a single object if the thing is not
         already a list. If it is a list, just return the list"""
-        if isinstance(x,types.ListType):
+        if isinstance(x,list):
             return x
         return [ x ]
 
@@ -1039,7 +1039,7 @@ class dag_t(object):
         """
         if verbose(12):
             msgb("DAG ADDING", str(d))
-        if isinstance(d,types.DictType):
+        if isinstance(d,dict):
             q = self._convert_to_dagfood(d)
             c = self._add_dagfood(env,q)
         elif isinstance(d,plan_t):
