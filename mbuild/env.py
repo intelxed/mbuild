@@ -20,6 +20,7 @@
 #END_LEGAL
 
 """Environment support"""
+from __future__ import print_function
 import os
 import sys
 import re
@@ -29,12 +30,13 @@ import optparse
 import time
 import copy
 
-from   base import *
+from   .base import *
 import util
 import build_env
 import plan
 import msvs
 import mbuild
+
 
 def _remove_libname(args,env):
     #lib = env.expand('%(LIBNAME)s')
@@ -262,7 +264,7 @@ class env_t(object):
             name = m.group('name')
             if name not in dct1:
                 die("Bad substitution for " + name)
-            #print "SUBSTITUTING %s" % name
+            #print ("SUBSTITUTING %s" % name)
             v = dct1[name]
             # repeatedly expand any tuples that show up.
             while not isinstance(v,types.StringType):
@@ -297,7 +299,7 @@ class env_t(object):
             t = self._mysub(t,name,v)
             m = subs_pattern.search(t)
             if debug:
-                print t
+                print (t)
         return t
     
     def _dosub_old(self,s,d):

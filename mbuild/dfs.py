@@ -22,7 +22,7 @@
 """This file provides a node_t type and a dfs() routine that prints out
 cycles found in a graph represented as a list of node_t objects.
 """
-
+from __future__ import print_function
 _dfs_verbose = False
 
 class node_t(object):
@@ -62,7 +62,7 @@ def _print_cycle(last_visit, grey_loop_closer):
     pad = ''
     p = last_visit
     while 1:
-        print pad, p.name
+        print (pad, p.name)
         if p == grey_loop_closer:
             break
         p = p.predecessor
@@ -73,7 +73,7 @@ def _visit(n):
     n.color = 1
     n.discover = _dfs_time
     if _dfs_verbose:
-        print "visiting %s" % str(n)
+        print ("visiting %s" % str(n))
     _dfs_time += 1
     retval = False
     for a in n.afters:
@@ -82,7 +82,7 @@ def _visit(n):
             retval |= _visit(a)
         elif a.color == 1:
             # a back-edge
-            print "cycle"
+            print ("cycle")
             _print_cycle(n,a)
             retval = True
     n.color = 2
@@ -117,7 +117,7 @@ def _visit_transpose(n):
     global _dfs_time
     n.color = 1
     if _dfs_verbose:
-        print "visiting %s" % str(n)
+        print ("visiting %s" % str(n))
     for a in n.befores:
         if a.color == 0:
             _visit_transpose(a)
@@ -134,7 +134,7 @@ def dfs_transpose(nodes):
         if n.color == 0:
             _visit_transpose(n)
             if _dfs_verbose:
-                print "===="
+                print ("====")
 
 ####################################################
             
@@ -151,11 +151,11 @@ def _test_dfs():
     nodes = [ node1, node2, node3, node4 ]
     cycle = dfs(nodes)
     if cycle:
-        print "CYCLE DETECTED"
-    #print "VISIT TRANSPOSE"
+        print ("CYCLE DETECTED")
+    #print ("VISIT TRANSPOSE")
     #dfs_transpose(nodes)
 
-    # print "NODES\n", "\n".join(map(str,nodes))
+    # print ("NODES\n", "\n".join(map(str,nodes)))
 
 if __name__ == '__main__':
     _test_dfs()

@@ -19,17 +19,21 @@
 #END_LEGAL
 
 """Command objects and parallel work queue"""
-
+from __future__ import print_function
 import os
 import sys
 import types
-import Queue
+is_py2 = sys.version[0] == '2'
+if is_py2:
+    import Queue as queue
+else:
+    import queue as queue
 from threading import Thread
 from collections import deque
 
-from base import *
-from util import *
-from dag import *
+from .base import *
+from .util import *
+from .dag import *
 
 
 ############################################################################
@@ -485,7 +489,7 @@ class command_t(object):
             # stop if something failed
             if self.exit_status != 0:
                break;
-         except Exception, e:
+         except Exception as e:
             self.exit_status = 1
             self.stderr.append("Execution error for: %s\n%s" % (str(e), self.dump()))
             break
@@ -533,9 +537,9 @@ class work_queue_t(object):
       
       # worker threads can add stuff to the new_queue so we
       # use an MT-safe queue.
-      self.new_queue = Queue.Queue(0)
-      self.out_queue = Queue.Queue(0)
-      self.back_queue = Queue.Queue(0)
+      self.new_queue = queue.Queue(0)
+      self.out_queue = queue.Queue(0)
+      self.back_queue = queue.Queue(0)
       self.pending_commands = deque()
       
       self.message_delay = 10
@@ -824,7 +828,7 @@ class work_queue_t(object):
            self.finished += 1
            self.running_commands.remove(cmd)
            return cmd
-        except Queue.Empty:
+        except queue.Empty:
            return None
         except KeyboardInterrupt:
            msgb('INTERRUPT')
@@ -896,7 +900,7 @@ class work_queue_t(object):
             # some stuff did not build, force an error status return
             msgb("ERROR: DID NOT BUILD SOME STUFF", "\n\t".join(did_not_build))
             if self.dag:
-                  print self.dag.dump()
+                  print (self.dag.dump())
             self.end_time = get_time()
             self._cleanup()
             return False
@@ -963,7 +967,7 @@ class work_queue_t(object):
                for x in self.dag._enable_successors(c):
                   self.add(x.creator)
          if c and (self.show_errors_only==False or c.failed()):
-            print c.dump(show_output=show_output)
+            print (c.dump(show_output=show_output))
          if self._done():
             break;
       return okay
@@ -1009,7 +1013,7 @@ class work_queue_t(object):
                      for x in self.dag._enable_successors(c):
                         self.add(x.creator)
                if self.show_errors_only==False or c.failed():
-                  print c.dump(show_output=show_output)
+                  print (c.dump(show_output=show_output))
                self._status()
          if self._done():
             break;

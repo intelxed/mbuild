@@ -23,9 +23,9 @@
 import os
 import sys
 import platform
-from base import *
-from util import *
-from env import *
+from .base import *
+from .util import *
+from .env import *
 import msvs
 
 

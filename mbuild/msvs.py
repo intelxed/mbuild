@@ -33,13 +33,13 @@
 """Environment setup for Microsoft Visual Studio.  Set INCLUDE,
 LIBPATH, LIB, PATH, VCINSTALLDIR, VS80COMNTOOLS, VSINSTALLDIR, etc.
 """
-
+from __future__ import print_function
 import os
 import sys
 import platform
-from base import *
-from util import *
-from env import *
+from .base import *
+from .util import *
+from .env import *
 
 ########################################################################
 def set_env(v,s):
@@ -54,7 +54,7 @@ def set_env(v,s):
     # error msg.
     try:
         os.environ[v]=s
-    except Exception, e:
+    except Exception as e:
         sys.stderr.write( str(e) + '\n')
         sys.stderr.write("Env Variable [%s]\n" % (v))
         sys.stderr.write("Original was [%s]\n" % (orig))
@@ -78,7 +78,7 @@ def add_env(v,s):
 	   tag = "GOOD"
         else:
 	   tag = "BAD"
-        print "{} {}".format(tag,s)
+        print ("{} {}".format(tag,s))
     v.insert(0,s)
 ########################################################################
 

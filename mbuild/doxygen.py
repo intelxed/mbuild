@@ -167,10 +167,10 @@ def _customize_doxygen_file(env, subs):
     for line in  lines:
        oline = line
        for k,p in rsubs.iteritems():
-          #print 'searching for', k, 'to replace it with', subs[k]
+          #print ('searching for', k, 'to replace it with', subs[k])
           m =  p.search(oline)
           while m:
-             #print 'replacing', k, 'with', subs[k]
+             #print ('replacing', k, 'with', subs[k])
              oline = _replace_match(oline, m, subs[k], 'tag')
              m =  p.search(oline)
        olines.append(oline)

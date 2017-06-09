@@ -39,7 +39,7 @@ try:
 except:
     import pickle as apickle
 
-from base import *
+from .base import *
 
 def find_python(env):
     """return path to NON cygwin"""
@@ -871,7 +871,7 @@ def find_dir(d):
     last = ''
     while dir != last:
         target_dir = os.path.join(dir,d)
-        #print "Trying %s" % (target_dir)
+        #print ("Trying %s" % (target_dir))
         if os.path.exists(target_dir):
             return target_dir
         last = dir

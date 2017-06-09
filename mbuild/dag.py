@@ -66,7 +66,7 @@
 # file, we must run it to produce the missing header.
 #
 
-
+from __future__ import print_function
 import os
 import sys
 import platform
@@ -78,11 +78,11 @@ except:
     import pickle as apickle
 
 
-from base import *
-from work_queue import *
-from env import *
-from util import *
-from plan import *
+from .base import *
+from .work_queue import *
+from .env import *
+from .util import *
+from .plan import *
 import scanner
 import dfs
 import util
@@ -248,7 +248,7 @@ class _mbuild_dep_record_t(object):
     def dump(self):
         """print a string representing this node of the DAG. The
         string comes from the __str__ function"""
-        print self.dump_str()
+        print(self.dump_str())
     def __str__(self):
         return self.dump_str()
 
@@ -333,7 +333,7 @@ class dag_t(object):
 
     def dump(self):
         """print a string representing   the DAG. """
-        print "DAG DUMP"
+        print("DAG DUMP")
         for v in self.recs.itervalues():
             v.dump()
 
@@ -569,7 +569,7 @@ class dag_t(object):
         return did_not_build
 
     def _find_loops(self, root_nodes):
-        #print "FIND LOOPS"
+        #print ("FIND LOOPS")
 
         def _mark_loop(level,n,stack,all_sccs):
             # Tarjan's algorithm for strongly connected components
@@ -602,7 +602,7 @@ class dag_t(object):
         level = 1
 
         for v in root_nodes:     
-            #print "MARKING", v.file_name
+            #print ("MARKING", v.file_name)
             _mark_loop(level,v,stack,all_sccs)
 
         # mark nodes that are part of include-loops (and print them out)

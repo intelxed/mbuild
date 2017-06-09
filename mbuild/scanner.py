@@ -19,12 +19,13 @@
 #END_LEGAL
 
 """Function for header include scanning"""
-
+from __future__ import print_function
 import re
 import os
 import sys
 import base
 import util
+
 
 class mbuild_header_record_t:
     """Stores information about headers that we find"""
@@ -76,13 +77,13 @@ def mbuild_scan(fn, search_path):
     aug_search_path = [source_path] + search_path
         
     for line in file(fn).readlines():
-        #print line
+        #print (line)
         hgroup = mbuild_include_pattern.match(line)
         if not hgroup:
             hgroup = mbuild_nasm_include_pattern.match(line)
         if hgroup:
             hname =  hgroup.group('hdr')
-            #print hname
+            #print (hname)
             full_name = mbuild_compute_path(hname, aug_search_path)
             if full_name:
                 hr = mbuild_header_record_t(full_name)
@@ -97,7 +98,7 @@ def _test_scan():
     paths = ["/home/mjcharne/proj/learn/" ]
     all_headers = mbuild_scan("/home/mjcharne/proj/learn/foo.cpp", paths)
     for hr in all_headers:
-        print hr
+        print (hr)
 
 if __name__ == '__main__':
     _test_scan()
