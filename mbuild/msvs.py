@@ -75,9 +75,9 @@ def add_env(v,s):
     """Add v=v;old_vs to the shell environment. Inserts at front"""
     if 0:
         if os.path.exists(s):
-	   tag = "GOOD"
+            tag = "GOOD"
         else:
-	   tag = "BAD"
+            tag = "BAD"
         print ("{} {}".format(tag,s))
     v.insert(0,s)
 ########################################################################
@@ -687,9 +687,9 @@ def _find_latest_subdir(d):
     ctime = 0
     for g in glob(d + '*'):
         gtime = os.path.getctime(g)
-	if gtime > ctime:
-	    ctime = gtime
-	    subdir = g
+        if gtime > ctime:
+            ctime = gtime
+            subdir = g
     return subdir
 def _ijoin(x,y):
     return '{}/{}'.format(x,y)
@@ -1025,7 +1025,7 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
         add_env(path, t  + '/bin/x86')
             
         if sdk10a:
-	    b = _find_latest_subdir(sdk10a + '/bin/')
+            b = _find_latest_subdir(sdk10a + '/bin/')
             add_env(path, b + '/x64')
         else:
             add_env(path, sdk81a + '/bin/NETFX 4.5.1 Tools/x64')
@@ -1072,7 +1072,7 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
         add_env(path, t  + '/bin/x86')
 
         if sdk10a:
-	    b = _find_latest_subdir(sdk10a + '/bin/')
+            b = _find_latest_subdir(sdk10a + '/bin/')
             add_env(path, b + '/x64')
         else:
             add_env(path, sdk81a + '/bin/NETFX 4.5.1 Tools')

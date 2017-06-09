@@ -32,7 +32,6 @@ import time
 import subprocess
 import tempfile
 import shlex
-import mbuild
 import traceback
 try:
     import cPickle as apickle
@@ -55,7 +54,7 @@ def find_python(env):
               if os.path.exists(p):
                   return p
           if not pycmd:
-              mbuild.die("Could not find win32 python at these locations: %s" %
+              die("Could not find win32 python at these locations: %s" %
                          "\n\t" + "\n\t".join(python_commands))
     
     return pycmd                     
@@ -249,7 +248,7 @@ def prefix_files(dir,input_files):
     @return: input file(s) prefixed with dir sp
     """
     if isinstance(input_files,types.ListType):
-        new_files = map(lambda(x): join(dir, x), input_files)
+        new_files = map(lambda x: join(dir, x), input_files)
         return new_files
     elif isinstance(input_files,types.StringType):
         new_file = join(dir, input_files)
@@ -388,7 +387,7 @@ def posix_slashes(s):
 def glob(s):
     """Run the normal glob.glob() on s but make sure all the slashes
     are flipped forward afterwards. This is shorthand for
-    mbuild.posix_slashes(glob.glob(s))"""
+    posix_slashes(glob.glob(s))"""
     import glob
     return posix_slashes(glob.glob(s))
 
@@ -436,7 +435,7 @@ def hash_list(list_of_strings):
         m = hashlib.sha1()
     else:
         m = sha.new()
-    map(lambda (x): m.update(x), list_of_strings)
+    map(lambda x: m.update(x), list_of_strings)
     d = m.hexdigest()
     return d
 
@@ -681,7 +680,7 @@ def run_command(cmd,
          if not isinstance(stdout,types.ListType):
              stdout = [stdout]
          return (sub.returncode, stdout, None)
-   except OSError, e:
+   except OSError as e:
        s= ["Execution failed for: %s\n" % (cmd) ]
        s.append("Result is %s\n" % (str(e)))
        # put the error message in stderr if there is a separate
@@ -759,7 +758,7 @@ def run_command_unbufferred(cmd,
            
        sub.wait()
        return (sub.returncode, lines, [])
-   except OSError, e:
+   except OSError as e:
        lines.append("Execution failed for: %s\n" % (cmd))
        lines.append("Result is %s\n" % (str(e)))
        return (1, lines,[])
@@ -821,7 +820,7 @@ def run_command_output_file(cmd,
        output.close()
        sub.wait()
        return (sub.returncode, lines, [])
-   except OSError, e:
+   except OSError as e:
        lines.append("Execution failed for: %s\n" % (cmd))
        lines.append("Result is %s\n" % (str(e)))
        return (1, lines,[])
@@ -861,7 +860,7 @@ def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
        fin.close()
        fout.close()
        return retval
-   except OSError, e:
+   except OSError as e:
        die("Execution failed for cmd %s\nResult is %s\n" % (cmd,str(e)))
 
 def find_dir(d):

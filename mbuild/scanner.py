@@ -23,8 +23,8 @@ from __future__ import print_function
 import re
 import os
 import sys
-import base
-import util
+from . import base
+from . import util
 
 
 class mbuild_header_record_t:

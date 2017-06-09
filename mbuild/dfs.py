@@ -53,7 +53,7 @@ class node_t(object):
         s = []
         s.append("TARGET: %s\n\t" % self.name)
         s.append("discovered %d  finalized %d\n\t" % (self.discover, self.finalize))
-        s.extend(map(lambda(x): "\t\n%s" % x.name, self.afters))
+        s.extend(map(lambda x: "\t\n%s" % x.name, self.afters))
         return ''.join(s)
 
 

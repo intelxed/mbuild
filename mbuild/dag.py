@@ -83,9 +83,9 @@ from .work_queue import *
 from .env import *
 from .util import *
 from .plan import *
-import scanner
-import dfs
-import util
+from . import scanner
+from . import dfs
+from . import util
 
 class _mbuild_dep_record_t(object):
     """This stores the basic dependence structure for the

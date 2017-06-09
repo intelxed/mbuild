@@ -31,11 +31,10 @@ import time
 import copy
 
 from   .base import *
-import util
-import build_env
-import plan
-import msvs
-import mbuild
+from . import util
+from . import build_env
+from . import plan
+from . import msvs
 
 
 def _remove_libname(args,env):
@@ -211,7 +210,7 @@ class env_t(object):
         if  isinstance(command_string, types.StringType):
             return self._iterative_substitute(command_string, newenv)
         if  isinstance(command_string, types.ListType):
-            return map(lambda(x): self._iterative_substitute(x, newenv), command_string)
+            return map(lambda x: self._iterative_substitute(x, newenv), command_string)
         die("expand_string only handles substitution in strings or lists of strings")
 
     def expand_key(self,k, newenv=None):
@@ -235,7 +234,7 @@ class env_t(object):
         if  isinstance(newenv[k],types.ListType):
             # We must process each string in the list and do
             # substitutions on them.  For example, CPPPATH
-            return map(lambda(x): self._iterative_substitute(x,newenv), newenv[k])
+            return map(lambda x: self._iterative_substitute(x,newenv), newenv[k])
         if  isinstance(newenv[k], types.StringType):
             return self._iterative_substitute("%(" + k + ")s", newenv)
         # non strings (scalars)
@@ -309,7 +308,7 @@ class env_t(object):
         expand each element of that list"""
 
         if isinstance(s,types.ListType):
-            return map(lambda(x): self.dosub(x,d), s)
+            return map(lambda x: self.dosub(x,d), s)
 
         # The common case: Just expanding a simple string.
         t = s
@@ -368,7 +367,7 @@ class env_t(object):
             (val, typ) = _winreg.QueryValueEx(key, env_var)
             return val
         except:
-            mbuild.die(("Could not read windows registry for variable %s.\n" % \
+            die(("Could not read windows registry for variable %s.\n" % \
                             (env_var)) + 
                            "Use win32 python and install pywin32")
 
@@ -1308,7 +1307,7 @@ class env_t(object):
         @return: fn with a new suffix specified by newext
         """
         if isinstance(fn,types.ListType):
-            return map(lambda(x): self.resuffix(x,newext), fn)
+            return map(lambda x: self.resuffix(x,newext), fn)
         else:
             (root,ext) = os.path.splitext(fn)
             return root + newext
@@ -1950,7 +1949,7 @@ class env_t(object):
                     libs.append(lib)
                 else:
                     for dir in self.env['LINKPATH']:
-                        t = mbuild.join(dir,lib)
+                        t = util.join(dir,lib)
                         if os.path.exists(t):
                             #msgb("ADDING DERIVED DEPENDENCE ON LIBRARY", t)
                             libs.append(t)
