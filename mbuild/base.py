@@ -192,3 +192,8 @@ def on_windows():
   """
   global _on_windows
   return _on_windows
+
+def ensure_string(x):
+    if isinstance(x,bytes):
+        return x.decode('utf-8')
+    return x

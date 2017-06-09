@@ -1182,7 +1182,7 @@ class env_t(object):
         cmd = "/usr/sbin/sysctl hw.optional.x86_64"
         (retval,output, error_output) = util.run_command(cmd)
         if retval == 0 and len(output)>0:
-            if re.match('hw.optional.x86_64: 1', output[0]):
+            if re.match('hw.optional.x86_64: 1', ensure_string(output[0])):
                 return True
         return False
     
