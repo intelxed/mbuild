@@ -309,7 +309,7 @@ class dag_t(object):
         """
         node_dict = {}
         # build the graph for the DFS
-        for k,v in self.recs.iteritems():
+        for k,v in iter(self.recs.items()):
             if k in node_dict:
                 node = node_dict[k] 
             else:
@@ -357,7 +357,7 @@ class dag_t(object):
         if verbose(10):
             msgb("WRITING SIGNATURES", self.signature_file_name)
         d = {}
-        for (k,v) in self.recs.iteritems():
+        for (k,v) in iter(self.recs.items()):
             # get the new hash values for anything that had a command
             # execute for it.
             if v.creator:
@@ -436,11 +436,11 @@ class dag_t(object):
             warn("READING SIGNATURES FAILED FOR "+ file_name)
             return
         if verbose(99):
-            for k, v in self.old_signatures.iteritems():
+            for k, v in iter(self.old_signatures.items()):
                 msgb("SIGREAD", "%s -> %s" % (str(v.signature),k))
 
         # Add old signatures to any existing files
-        for k, v in self.recs.iteritems():
+        for k, v in iter(self.recs.items()):
             if k in self.old_signatures:
                 v.old_signature = self.old_signatures[k].signature
 

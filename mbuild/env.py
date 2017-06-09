@@ -334,7 +334,7 @@ class env_t(object):
         s.append("\nSYSTEM: ")
         s.append(self.env['system'])
         s.append("\nDICTIONARY:\n")
-        for k,v in self.env.iteritems():
+        for k,v in iter(self.env.items()):
             s.append("\t")
             s.append(k)
             s.append("->")

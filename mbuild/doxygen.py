@@ -139,7 +139,7 @@ def _customize_doxygen_file(env, subs):
     Returns True on success"""
     
     # doxygen wants quotes around paths with spaces
-    for k,s in subs.iteritems():
+    for k,s in iter(subs.items()):
        if re.search(' ',s):
           if not re.search('^".*"$',s):
              base.die("Doxygen requires quotes around strings with spaces: [%s]->[%s]" %
@@ -163,13 +163,13 @@ def _customize_doxygen_file(env, subs):
           
     # compile the patterns
     rsubs = {}
-    for k,v in subs.iteritems():
+    for k,v in iter(subs.items()):
        rsubs[k]=re.compile(r'(?P<tag>[$][(]' + k + '[)])')
 
     olines = []
     for line in  lines:
        oline = line
-       for k,p in rsubs.iteritems():
+       for k,p in iter(rsubs.items()):
           #print ('searching for', k, 'to replace it with', subs[k])
           m =  p.search(oline)
           while m:
