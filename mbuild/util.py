@@ -426,29 +426,28 @@ def escape_special_characters(s):
 
 if check_python_version(2,5):
     import hashlib
+    hasher = hashlib.sha1
 else:
     import sha
+    hasher = sha.new
 
 def hash_list(list_of_strings):
     """Compute a sha1 hash of a list of strings and return the hex digest"""
-    if check_python_version(2,5):
-        m = hashlib.sha1()
-    else:
-        m = sha.new()
-    map(lambda x: m.update(x), list_of_strings)
-    d = m.hexdigest()
-    return d
+    m = hasher()
+    for l in list_of_strings:
+        m.update(l.encode('utf-8'))
+    return m.hexdigest()
 
 
 def hash_file(fn):
-    if os.path.exists(fn):
-        try:
-            lines = file(fn).readlines()
-        except:
-            die("COULD NOT READ: %s" % (fn))
-        signature = hash_list(lines)
-        return signature
-    return None
+    if not os.path.exists(fn):
+        return None
+    m = hasher()
+    with open(fn,'rb') as afile:
+        buf = afile.read()
+        m.update(buf)
+    return m.hexdigest()
+
 
 
 def write_signatures(fn,d):

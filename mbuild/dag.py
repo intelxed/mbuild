@@ -133,14 +133,7 @@ class _mbuild_dep_record_t(object):
     def hash_file(self):
         #msgb("HASHING", str(self.file_name))
         if os.path.exists(self.file_name):
-            try:
-                lines = file(self.file_name).readlines()
-            except:
-                die("COULD NOT READ: %s" %(str(self.file_name)))
-            self.signature = hash_list(lines)
-            if verbose(99):
-                msgb("HASHFILE", "%s -> %s" % (self.signature,
-                                               self.file_name))
+            self.signature = util.hash_file(self.file_name)
         else:
             if verbose(99):
                 msgb("COULD NOT HASH MISSING FILE", self.file_name)

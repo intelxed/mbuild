@@ -266,7 +266,7 @@ class env_t(object):
             #print ("SUBSTITUTING %s" % name)
             v = dct1[name]
             # repeatedly expand any tuples that show up.
-            while not isinstance(v,bytes):
+            while not (isinstance(v,bytes) or isinstance(v,str)):
                 if isinstance(v,tuple):
                     (key, dct) = v
                     
