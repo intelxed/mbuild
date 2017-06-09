@@ -207,7 +207,7 @@ class env_t(object):
         """
         if newenv == None:
             newenv = self.env
-        if  isinstance(command_string, bytes):
+        if  isinstance(command_string, bytes) or isinstance(command_string,str):
             return self._iterative_substitute(command_string, newenv)
         if  isinstance(command_string, list):
             return map(lambda x: self._iterative_substitute(x, newenv), command_string)
