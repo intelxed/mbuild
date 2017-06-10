@@ -33,8 +33,8 @@ def dump(lines):
 env = mbuild.env_t(0)
 env.parse_args()
 
-infile = open('stdin.py','r')
-retval,output,error = mbuild.run_command('cat', stdin=infile)
+
+retval,output,error = mbuild.run_command('cat', input_file_name='stdin.py')
 print ("EXIT STATUS ", str(retval))
 print ("OUTPUT LINES ")
 dump(output)
