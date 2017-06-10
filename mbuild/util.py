@@ -248,7 +248,7 @@ def prefix_files(dir,input_files):
     @return: input file(s) prefixed with dir sp
     """
     if isinstance(input_files,list):
-        new_files = map(lambda x: join(dir, x), input_files)
+        new_files = [join(dir,x) for x in input_files]
         return new_files
     elif isinstance(input_files,bytes) or isinstance(input_files,str):
         new_file = join(dir, input_files)

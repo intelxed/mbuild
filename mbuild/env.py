@@ -210,7 +210,7 @@ class env_t(object):
         if  isinstance(command_string, bytes) or isinstance(command_string,str):
             return self._iterative_substitute(command_string, newenv)
         if  isinstance(command_string, list):
-            return map(lambda x: self._iterative_substitute(x, newenv), command_string)
+            return [ self._iterative_substitute(x, newenv) for x in command_string ]
         die("expand_string only handles substitution in strings or lists of strings")
 
     def expand_key(self,k, newenv=None):
@@ -234,7 +234,7 @@ class env_t(object):
         if  isinstance(newenv[k],list):
             # We must process each string in the list and do
             # substitutions on them.  For example, CPPPATH
-            return map(lambda x: self._iterative_substitute(x,newenv), newenv[k])
+            return [ self._iterative_substitute(x,newenv) for x in  newenv[k]]
         if  isinstance(newenv[k], bytes):
             return self._iterative_substitute("%(" + k + ")s", newenv)
         # non strings (scalars)
@@ -308,7 +308,7 @@ class env_t(object):
         expand each element of that list"""
 
         if isinstance(s,list):
-            return map(lambda x: self.dosub(x,d), s)
+            return [ self.dosub(x,d) for x in  s]
 
         # The common case: Just expanding a simple string.
         t = s
@@ -1307,7 +1307,7 @@ class env_t(object):
         @return: fn with a new suffix specified by newext
         """
         if isinstance(fn,list):
-            return map(lambda x: self.resuffix(x,newext), fn)
+            return [self.resuffix(x,newext) for x in fn]
         else:
             (root,ext) = os.path.splitext(fn)
             return root + newext
