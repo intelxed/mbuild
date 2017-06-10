@@ -18,6 +18,7 @@
 #  
 #END_LEGAL
 
+from __future__ import print_function
 import sys
 import find
 import mbuild
@@ -29,7 +30,7 @@ if 'clean' in env['targets']:
     mbuild.remove_tree(env['build_dir'])
     sys.exit(0)    
 if not env.on_linux():
-    print "This is a linux only test"   
+    print ("This is a linux only test"   )
     sys.exit(0)    
 
 mbuild.cmkdir(env['build_dir'])
