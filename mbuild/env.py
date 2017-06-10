@@ -361,10 +361,14 @@ class env_t(object):
 
     def _check_registry_environment(self,env_var):
         s = 'SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment'
+        is_py2 = sys.version[0] == '2'
         try:
-            import _winreg
-            key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, s)
-            (val, typ) = _winreg.QueryValueEx(key, env_var)
+            if is_py2:
+                import _winreg as winreg
+            else:
+                import winreg
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, s)
+            (val, typ) = winreg.QueryValueEx(key, env_var)
             return val
         except:
             die(("Could not read windows registry for variable %s.\n" % \

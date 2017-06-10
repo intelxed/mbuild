@@ -1125,18 +1125,23 @@ def _figure_out_msvs_version_filesystem(env, specific_version=0):
                 return str(v)
     return None # we don't know
 
+_is_py2 = sys.version[0] == '2'
+
 def _read_registry(root,key,value):
-    import _winreg
+    if _is_py2:
+        import _winreg as winreg
+    else:
+        import winreg
     try:
-        hkey = _winreg.OpenKey(root, key)
+        hkey = winreg.OpenKey(root, key)
     except:
         return None
     try:
-        (val, typ) = _winreg.QueryValueEx(hkey, value)
+        (val, typ) = winreg.QueryValueEx(hkey, value)
     except:
-        _winreg.CloseKey(hkey)
+        winreg.CloseKey(hkey)
         return None
-    _winreg.CloseKey(hkey)
+    winreg.CloseKey(hkey)
     return val
 
 def pick_compiler(env):
@@ -1161,12 +1166,16 @@ def _pick_compiler_until_dev14(env):
     return toolchain
 
 def _find_msvc_in_registry(env,version):
-    import _winreg
+    if _is_py2:
+        import _winreg as winreg
+    else:
+        import winreg
+
     vs_ver = str(version) + '.0'
     vs_key = 'SOFTWARE\\Microsoft\\VisualStudio\\' + vs_ver + '\\Setup\\VS'
     vc_key = 'SOFTWARE\\Microsoft\\VisualStudio\\' + vs_ver + '\\Setup\\VC'
-    vs_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, vs_key, 'ProductDir')
-    vc_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, vc_key, 'ProductDir')
+    vs_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, vs_key, 'ProductDir')
+    vc_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, vc_key, 'ProductDir')
     
     # On a 64-bit host, look for a 32-bit installation 
 
@@ -1175,9 +1184,9 @@ def _find_msvc_in_registry(env,version):
             vs_ver + '\\Setup\\VS'
         vc_key = 'SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\' + \
             vs_ver + '\\Setup\\VC'
-        vs_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, 
+        vs_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, 
                                 vs_key, 'ProductDir')
-        vc_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, 
+        vc_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, 
                                 vc_key, 'ProductDir')
     return (vs_dir,vc_dir)
 
