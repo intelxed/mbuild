@@ -357,7 +357,7 @@ def flip_slashes(s):
    if on_native_windows():
       return s
    if isinstance(s, list):
-       return  map(flip_slashes, s)
+       return  list(map(flip_slashes, s))
    t = re.sub(r'\\',_mysep,s,0) # replace all
    return t
 
@@ -370,7 +370,7 @@ def posix_slashes(s):
    @return: string(s) with forward slashes
    """
    if isinstance(s,list):
-       return  map(posix_slashes, s)
+       return  list(map(posix_slashes, s))
    #t = re.sub(r'\\','/',s,0) # replace all
    last = len(s)-1
    t=[]
