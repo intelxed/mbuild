@@ -40,9 +40,9 @@ def some_python_fn(a,b):
         for j in range(0,n):
             for k in range(0,n):
                 x += i*j*k
-    return (0, [str(x)], [])
+    return (0, [str(x)])
 
-c3 = mbuild.command_t(some_python_fn, seconds=2, show_output=False)
+c3 = mbuild.command_t(some_python_fn, seconds=2, show_output=True) 
 work_queue.add(c3)
 
 
