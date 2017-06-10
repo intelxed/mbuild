@@ -509,7 +509,7 @@ def _worker_one_task(incoming,outgoing):
       outgoing.put(item)
       return False
    item.execute()
-   #incoming.task_done() # PYTHON2.5 ONLY
+   incoming.task_done()
    outgoing.put(item)
    return True
 
@@ -623,7 +623,7 @@ class work_queue_t(object):
    def __del__(self):
       if verbose(3):
          msgb("DEL WORK QUEUE")
-      self._terminate()
+      #self._terminate()
 
    def _terminate(self):
       """Shut everything down. Kill the worker threads if any were
@@ -827,6 +827,7 @@ class work_queue_t(object):
            self.running -= 1
            self.finished += 1
            self.running_commands.remove(cmd)
+           self.back_queue.task_done()
            return cmd
         except queue.Empty:
            return None
