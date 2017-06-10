@@ -657,6 +657,7 @@ def run_command(cmd,
                                 stderr = subprocess.PIPE,
                                 cwd=directory,
                                 env=osenv,
+                                universal_newlines=True,
                                 **kwargs)
          (stdout, stderr ) = sub.communicate()
          if not isinstance(stderr,list):
@@ -673,6 +674,7 @@ def run_command(cmd,
                                 stderr = subprocess.STDOUT,
                                 cwd=directory,
                                 env=osenv,
+                                universal_newlines=True,
                                 **kwargs)
          stdout = sub.stdout.readlines()
          sub.wait()
@@ -743,6 +745,7 @@ def run_command_unbufferred(cmd,
                               stderr = subprocess.STDOUT,
                               env=osenv,
                               cwd=directory,
+                              universal_newlines=True,
                               **kwargs)
        while 1:
            # FIXME: 2008-12-05 bad for password prompts without newlines.
@@ -805,6 +808,7 @@ def run_command_output_file(cmd,
                               stderr = subprocess.STDOUT,
                               env=osenv,
                               cwd=directory,
+                              universal_newlines=True,
                               **kwargs)
        #msgb("RUNNING SUBPROCESS")
        while 1:
@@ -854,6 +858,7 @@ def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
                               stdin=fin, 
                               stdout=fout, 
                               stderr=subprocess.STDOUT,
+                              universal_newlines=True,
                               cwd=directory)
        retval = sub.wait()
        fin.close()
@@ -1015,6 +1020,7 @@ class _timed_command_t(threading.Thread):
                                         cwd=self.directory,
                                         env=self.osenv,
                                         stdin = input_file_obj,
+                                        universal_newlines=True,
                                         **self.kwargs)
         except:
             (self.exception_type,
