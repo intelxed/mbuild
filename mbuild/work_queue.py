@@ -253,7 +253,7 @@ class command_t(object):
          if not isinstance(i,types.FunctionType):
             s.append(i)
       t = " - ".join(s)
-      h = hash_string(t)
+      h = hash_string(t.encode('utf-8'))
       return h
    
    def add_before_me(self,n):
@@ -450,7 +450,7 @@ class command_t(object):
                (self.exit_status, output) = cmd( self.args, self.xenv )
                self._extend_output(output)
                
-            elif isinstance(cmd,bytes):
+            elif isinstance(cmd,bytes) or isinstance(cmd,str):
                # execute command strings
                if self.output_file_name:
                   (self.exit_status, output, stderr) = \
