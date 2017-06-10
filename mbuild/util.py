@@ -608,7 +608,7 @@ def _cond_open_input_file(directory,input_file_name):
             fn = os.path.join(directory, input_file_name)
         else:
             fn  = input_file_name
-        input_file_obj = file(fn,"r")
+        input_file_obj = open(fn,"r")
         return input_file_obj
     return None
 
@@ -798,7 +798,7 @@ def run_command_output_file(cmd,
    lines = []
    cmd_args = _prepare_cmd(cmd)
    try:
-       output = file(output_file_name,"w")
+       output = open(output_file_name,"w")
        input_file_obj = _cond_open_input_file(directory, input_file_name)
        sub = subprocess.Popen(cmd_args,
                               shell=use_shell,
@@ -827,6 +827,9 @@ def run_command_output_file(cmd,
        lines.append("Execution failed for: %s\n" % (cmd))
        lines.append("Result is %s\n" % (str(e)))
        return (1, lines,[])
+   except:
+       print("Unxpected error:", sys.exc_info()[0])
+       raise
 
 def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
    """
