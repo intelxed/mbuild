@@ -814,7 +814,7 @@ class env_t(object):
             f = '/proc/cpuinfo'
             proc_pat= re.compile(r'proces')
             if os.path.exists(f):
-                for line in file(f).readlines():
+                for line in open(f,'r'):
                     if proc_pat.search(line):
                         n += 1
         return n
@@ -1166,10 +1166,10 @@ class env_t(object):
         """Return True if system supports AVX1. Does not work
         on windows"""
         if self.on_linux():
-            lines = file('/proc/cpuinfo').readlines()
-            for l in lines:
-                if 'avx' in l:
-                   return True
+            with open('/proc/cpuinfo','r') as fp:
+                for l in fp:
+                    if 'avx' in l:
+                        return True
         elif self.on_mac():
             cmd = "/usr/sbin/sysctl hw.optional.avx1_0"
             (retval, output, error_output) = util.run_command(cmd)
@@ -2000,7 +2000,7 @@ class env_t(object):
         if not isinstance(scmd,list):
             scmd = [ scmd ]
         for cmd in scmd:
-            if isinstance(cmd,bytes):
+            if isinstance(cmd,bytes): # FIXME:PY3 str?
                 n.append(self.expand_string(cmd, d))
             else:
                 n.append(cmd)

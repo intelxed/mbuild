@@ -1113,8 +1113,8 @@ def run_command_timed( cmd,
 
     # we use a temporary file to hold the output because killing the
     # process disrupts the normal output collection mechanism.
-    fo = tempfile.SpooledTemporaryFile()
-    fe = tempfile.SpooledTemporaryFile()
+    fo = tempfile.SpooledTemporaryFile() # FIXME: PY3 mode='w+'?
+    fe = tempfile.SpooledTemporaryFile() # FIXME: PY3 mode='w+'?
     tc = _timed_command_t(cmd,
                           shell_executable,
                           directory,
