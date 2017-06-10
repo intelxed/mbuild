@@ -396,7 +396,7 @@ class command_t(object):
                for line in self.output:
                   if tab_output:
                      s.append('\t')
-                  s.append(line)
+                  s.append(ensure_string(line))
             if show_output and self.show_output and self.stderr_exists():
                s.append(bracket('STDERR'))
                s.append(nl)
