@@ -484,7 +484,7 @@ class command_t(object):
                       
             else:
                self.exit_status = 1
-               self.extend_output("Unhandled command object: " + self.dump())
+               self._extend_output("Unhandled command object: " + self.dump())
 
             # stop if something failed
             if self.exit_status != 0:
