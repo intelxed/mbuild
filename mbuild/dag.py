@@ -327,7 +327,7 @@ class dag_t(object):
     def dump(self):
         """print a string representing   the DAG. """
         print("DAG DUMP")
-        for v in self.recs.itervalues():
+        for v in iter(self.recs.values()):
             v.dump()
 
     def _hash_mixed_list(l):
@@ -535,13 +535,13 @@ class dag_t(object):
         required for the build. Internal function"""
         if verbose(10):
             msgb("INPUT TARGETS", str(targets))
-        for v in self.recs.itervalues():
+        for v in iter(self.recs.values()):
             v.required = False
 
         target_dictionary = dict.fromkeys(targets, True)
         if verbose(10):
             msgb("TARGETS", str(target_dictionary))
-        for v in self.recs.itervalues():
+        for v in iter(self.recs.values()):
             if v.creator:
                 if v.file_name in target_dictionary:
                     if not v.required:
@@ -556,7 +556,7 @@ class dag_t(object):
         (1)there was an error in the build or (2) there is a
         circularity in the dependence structure."""
         did_not_build = []
-        for v in self.recs.itervalues():
+        for v in iter(self.recs.values()):
             if v.required and not v.visited:
                 did_not_build.append(v.file_name)
         return did_not_build
@@ -621,14 +621,14 @@ class dag_t(object):
             self._find_required_nodes(targets)
         else:
             # mark all nodes required since no targets are specified
-            for v in self.recs.itervalues():
+            for v in iter(self.recs.values()):
                 v.required = True
         
-        self._find_loops(self.recs.itervalues())        
+        self._find_loops(iter(self.recs.values()))        
 
         # build a list of roots -- files that have nothing they depend on.
         # store that list in the nodes list
-        for v in self.recs.itervalues():
+        for v in iter(self.recs.values()):
             v.visited = False # initialize all to false
             v.added = False # initialize all to false
             if (v.part_of_loop or len(v.files_that_are_inputs) == 0) and v.required:
@@ -1008,7 +1008,7 @@ class dag_t(object):
         @return: A list of L{command_t} objects.
         """
         executed_commands = []
-        for r in self.recs.itervalues():
+        for r in iter(self.recs.values()):
             if r.creator:
                 if r.creator.completed:
                     executed_commands.append(r.creator)
