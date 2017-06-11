@@ -2000,7 +2000,7 @@ class env_t(object):
         if not isinstance(scmd,list):
             scmd = [ scmd ]
         for cmd in scmd:
-            if isinstance(cmd,bytes): # FIXME:PY3 str?
+            if isinstance(cmd,bytes) or isinstance(cmd,str): 
                 n.append(self.expand_string(cmd, d))
             else:
                 n.append(cmd)
