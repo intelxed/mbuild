@@ -33,13 +33,13 @@
 """Environment setup for Microsoft Visual Studio.  Set INCLUDE,
 LIBPATH, LIB, PATH, VCINSTALLDIR, VS80COMNTOOLS, VSINSTALLDIR, etc.
 """
-
+from __future__ import print_function
 import os
 import sys
 import platform
-from base import *
-from util import *
-from env import *
+from .base import *
+from .util import *
+from .env import *
 
 ########################################################################
 def set_env(v,s):
@@ -54,7 +54,7 @@ def set_env(v,s):
     # error msg.
     try:
         os.environ[v]=s
-    except Exception, e:
+    except Exception as e:
         sys.stderr.write( str(e) + '\n')
         sys.stderr.write("Env Variable [%s]\n" % (v))
         sys.stderr.write("Original was [%s]\n" % (orig))
@@ -75,10 +75,10 @@ def add_env(v,s):
     """Add v=v;old_vs to the shell environment. Inserts at front"""
     if 0:
         if os.path.exists(s):
-	   tag = "GOOD"
+            tag = "GOOD"
         else:
-	   tag = "BAD"
-        print "{} {}".format(tag,s)
+            tag = "BAD"
+        print ("{} {}".format(tag,s))
     v.insert(0,s)
 ########################################################################
 
@@ -687,9 +687,9 @@ def _find_latest_subdir(d):
     ctime = 0
     for g in glob(d + '*'):
         gtime = os.path.getctime(g)
-	if gtime > ctime:
-	    ctime = gtime
-	    subdir = g
+        if gtime > ctime:
+            ctime = gtime
+            subdir = g
     return subdir
 def _ijoin(x,y):
     return '{}/{}'.format(x,y)
@@ -1025,7 +1025,7 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
         add_env(path, t  + '/bin/x86')
             
         if sdk10a:
-	    b = _find_latest_subdir(sdk10a + '/bin/')
+            b = _find_latest_subdir(sdk10a + '/bin/')
             add_env(path, b + '/x64')
         else:
             add_env(path, sdk81a + '/bin/NETFX 4.5.1 Tools/x64')
@@ -1072,7 +1072,7 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
         add_env(path, t  + '/bin/x86')
 
         if sdk10a:
-	    b = _find_latest_subdir(sdk10a + '/bin/')
+            b = _find_latest_subdir(sdk10a + '/bin/')
             add_env(path, b + '/x64')
         else:
             add_env(path, sdk81a + '/bin/NETFX 4.5.1 Tools')
@@ -1125,18 +1125,23 @@ def _figure_out_msvs_version_filesystem(env, specific_version=0):
                 return str(v)
     return None # we don't know
 
+_is_py2 = sys.version[0] == '2'
+
 def _read_registry(root,key,value):
-    import _winreg
+    if _is_py2:
+        import _winreg as winreg
+    else:
+        import winreg
     try:
-        hkey = _winreg.OpenKey(root, key)
+        hkey = winreg.OpenKey(root, key)
     except:
         return None
     try:
-        (val, typ) = _winreg.QueryValueEx(hkey, value)
+        (val, typ) = winreg.QueryValueEx(hkey, value)
     except:
-        _winreg.CloseKey(hkey)
+        winreg.CloseKey(hkey)
         return None
-    _winreg.CloseKey(hkey)
+    winreg.CloseKey(hkey)
     return val
 
 def pick_compiler(env):
@@ -1161,12 +1166,16 @@ def _pick_compiler_until_dev14(env):
     return toolchain
 
 def _find_msvc_in_registry(env,version):
-    import _winreg
+    if _is_py2:
+        import _winreg as winreg
+    else:
+        import winreg
+
     vs_ver = str(version) + '.0'
     vs_key = 'SOFTWARE\\Microsoft\\VisualStudio\\' + vs_ver + '\\Setup\\VS'
     vc_key = 'SOFTWARE\\Microsoft\\VisualStudio\\' + vs_ver + '\\Setup\\VC'
-    vs_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, vs_key, 'ProductDir')
-    vc_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, vc_key, 'ProductDir')
+    vs_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, vs_key, 'ProductDir')
+    vc_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, vc_key, 'ProductDir')
     
     # On a 64-bit host, look for a 32-bit installation 
 
@@ -1175,9 +1184,9 @@ def _find_msvc_in_registry(env,version):
             vs_ver + '\\Setup\\VS'
         vc_key = 'SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\' + \
             vs_ver + '\\Setup\\VC'
-        vs_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, 
+        vs_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, 
                                 vs_key, 'ProductDir')
-        vc_dir = _read_registry(_winreg.HKEY_LOCAL_MACHINE, 
+        vc_dir = _read_registry(winreg.HKEY_LOCAL_MACHINE, 
                                 vc_key, 'ProductDir')
     return (vs_dir,vc_dir)
 

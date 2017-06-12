@@ -17,6 +17,7 @@
 #  limitations under the License.
 #  
 #END_LEGAL
+from __future__ import print_function
 import find
 import mbuild
 
@@ -39,9 +40,9 @@ def some_python_fn(a,b):
         for j in range(0,n):
             for k in range(0,n):
                 x += i*j*k
-    return (0, [str(x)], [])
+    return (0, [str(x)])
 
-c3 = mbuild.command_t(some_python_fn, seconds=2, show_output=False)
+c3 = mbuild.command_t(some_python_fn, seconds=2, show_output=True) 
 work_queue.add(c3)
 
 
@@ -53,8 +54,8 @@ if okay:
 else:
     mbuild.msgb('BUILD', 'failed')
 
-print len(c2.output)
-print c2.output[0:10]
-print str(c2.stderr)
-print str(c3.output)
+print (len(c2.output))
+print (c2.output[0:10])
+print (str(c2.stderr))
+print (str(c3.output))
 

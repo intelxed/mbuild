@@ -20,6 +20,7 @@
 #END_LEGAL
 
 """Environment support"""
+from __future__ import print_function
 import os
 import sys
 import re
@@ -29,12 +30,12 @@ import optparse
 import time
 import copy
 
-from   base import *
-import util
-import build_env
-import plan
-import msvs
-import mbuild
+from   .base import *
+from . import util
+from . import build_env
+from . import plan
+from . import msvs
+
 
 def _remove_libname(args,env):
     #lib = env.expand('%(LIBNAME)s')
@@ -170,7 +171,7 @@ class env_t(object):
         msgb("VERSION", "$Id: mbuild_env.py 44 2007-03-16 15:54:44Z mjcharne $")
     def __setitem__(self,k,value):
         """Write a value to the environment dictionary"""
-        if isinstance(value,types.StringType):
+        if util.is_stringish(value):
             self.env[k] = util.posix_slashes(value)
         else:
             self.env[k] = value
@@ -206,10 +207,10 @@ class env_t(object):
         """
         if newenv == None:
             newenv = self.env
-        if  isinstance(command_string, types.StringType):
+        if util.is_stringish(command_string):
             return self._iterative_substitute(command_string, newenv)
-        if  isinstance(command_string, types.ListType):
-            return map(lambda(x): self._iterative_substitute(x, newenv), command_string)
+        if isinstance(command_string, list):
+            return [ self._iterative_substitute(x, newenv) for x in command_string ]
         die("expand_string only handles substitution in strings or lists of strings")
 
     def expand_key(self,k, newenv=None):
@@ -230,11 +231,11 @@ class env_t(object):
             die("Could not find %s in the environment" % k)
             
             
-        if  isinstance(newenv[k],types.ListType):
+        if isinstance(newenv[k],list):
             # We must process each string in the list and do
             # substitutions on them.  For example, CPPPATH
-            return map(lambda(x): self._iterative_substitute(x,newenv), newenv[k])
-        if  isinstance(newenv[k], types.StringType):
+            return [ self._iterative_substitute(x,newenv) for x in  newenv[k]]
+        if util.is_stringish(newenv[k]):
             return self._iterative_substitute("%(" + k + ")s", newenv)
         # non strings (scalars)
         return newenv[k]
@@ -262,11 +263,11 @@ class env_t(object):
             name = m.group('name')
             if name not in dct1:
                 die("Bad substitution for " + name)
-            #print "SUBSTITUTING %s" % name
+            #print ("SUBSTITUTING %s" % name)
             v = dct1[name]
             # repeatedly expand any tuples that show up.
-            while not isinstance(v,types.StringType):
-                if isinstance(v,types.TupleType):
+            while not util.is_stringish(v):
+                if isinstance(v,tuple):
                     (key, dct) = v
                     
                     # look up key in the main dictionary to create a
@@ -297,7 +298,7 @@ class env_t(object):
             t = self._mysub(t,name,v)
             m = subs_pattern.search(t)
             if debug:
-                print t
+                print (t)
         return t
     
     def _dosub_old(self,s,d):
@@ -306,8 +307,8 @@ class env_t(object):
         to return.  If the input s is a list, then we recursively
         expand each element of that list"""
 
-        if isinstance(s,types.ListType):
-            return map(lambda(x): self.dosub(x,d), s)
+        if isinstance(s,list):
+            return [ self.dosub(x,d) for x in  s]
 
         # The common case: Just expanding a simple string.
         t = s
@@ -333,7 +334,7 @@ class env_t(object):
         s.append("\nSYSTEM: ")
         s.append(self.env['system'])
         s.append("\nDICTIONARY:\n")
-        for k,v in self.env.iteritems():
+        for k,v in iter(self.env.items()):
             s.append("\t")
             s.append(k)
             s.append("->")
@@ -360,13 +361,17 @@ class env_t(object):
 
     def _check_registry_environment(self,env_var):
         s = 'SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment'
+        is_py2 = sys.version[0] == '2'
         try:
-            import _winreg
-            key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, s)
-            (val, typ) = _winreg.QueryValueEx(key, env_var)
+            if is_py2:
+                import _winreg as winreg
+            else:
+                import winreg
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, s)
+            (val, typ) = winreg.QueryValueEx(key, env_var)
             return val
         except:
-            mbuild.die(("Could not read windows registry for variable %s.\n" % \
+            die(("Could not read windows registry for variable %s.\n" % \
                             (env_var)) + 
                            "Use win32 python and install pywin32")
 
@@ -809,7 +814,7 @@ class env_t(object):
             f = '/proc/cpuinfo'
             proc_pat= re.compile(r'proces')
             if os.path.exists(f):
-                for line in file(f).readlines():
+                for line in open(f,'r'):
                     if proc_pat.search(line):
                         n += 1
         return n
@@ -836,7 +841,7 @@ class env_t(object):
         for k in kwds:
             if k in incoming_env:
                 t = incoming_env[k]
-                if  isinstance(t,types.ListType) and replace==False:
+                if  isinstance(t,list) and replace==False:
                     self.env[k].extend(t)
                 else:
                     self.env[k] = t
@@ -852,12 +857,12 @@ class env_t(object):
         if targets == None:
             targets = []
             
-        if not isinstance(targets,types.ListType):
+        if not isinstance(targets,list):
             die("The 'targets' environment option must be a list")
 
         if 'args' in self.env:
             args = self.env['args']
-            if isinstance(args,types.ListType):
+            if isinstance(args,list):
                 targets.extend(args)
             else:
                 die("The 'args' environment option must be a list")
@@ -1009,7 +1014,7 @@ class env_t(object):
         spaces."""
         if field in dct:
             v = dct[field]
-            if isinstance(v,types.ListType):
+            if isinstance(v,list):
                 vflat = ' '.join(v)
                 dct[field]= vflat
 
@@ -1161,10 +1166,10 @@ class env_t(object):
         """Return True if system supports AVX1. Does not work
         on windows"""
         if self.on_linux():
-            lines = file('/proc/cpuinfo').readlines()
-            for l in lines:
-                if 'avx' in l:
-                   return True
+            with open('/proc/cpuinfo','r') as fp:
+                for l in fp:
+                    if 'avx' in l:
+                        return True
         elif self.on_mac():
             cmd = "/usr/sbin/sysctl hw.optional.avx1_0"
             (retval, output, error_output) = util.run_command(cmd)
@@ -1181,7 +1186,7 @@ class env_t(object):
         cmd = "/usr/sbin/sysctl hw.optional.x86_64"
         (retval,output, error_output) = util.run_command(cmd)
         if retval == 0 and len(output)>0:
-            if re.match('hw.optional.x86_64: 1', output[0]):
+            if re.match('hw.optional.x86_64: 1', ensure_string(output[0])):
                 return True
         return False
     
@@ -1305,8 +1310,8 @@ class env_t(object):
         @rtype: string
         @return: fn with a new suffix specified by newext
         """
-        if isinstance(fn,types.ListType):
-            return map(lambda(x): self.resuffix(x,newext), fn)
+        if isinstance(fn,list):
+            return [self.resuffix(x,newext) for x in fn]
         else:
             (root,ext) = os.path.splitext(fn)
             return root + newext
@@ -1411,7 +1416,7 @@ class env_t(object):
         @param newdef: string to add to the ASFLAGS 
                        environment variable.
         """
-        if isinstance(newdef,types.ListType):
+        if isinstance(newdef,list):
             deflist = newdef
         else:
             deflist = [ newdef ]
@@ -1425,7 +1430,7 @@ class env_t(object):
         @param newdef: string to add to the CCFLAGS 
                        environment variable.
         """
-        if isinstance(newdef,types.ListType):
+        if isinstance(newdef,list):
             deflist = newdef
         else:
             deflist = [ newdef ]
@@ -1440,7 +1445,7 @@ class env_t(object):
         @param newdef: string to add to the CXXFLAGS 
                        environment variable.
         """
-        if isinstance(newdef,types.ListType):
+        if isinstance(newdef,list):
             deflist = newdef
         else:
             deflist = [ newdef ]
@@ -1456,7 +1461,7 @@ class env_t(object):
         @type include_dir: string or list of strings
         @param include_dir: string to add to the CPPPATH environment variable
         """
-        if isinstance(include_dir,types.ListType):
+        if isinstance(include_dir,list):
             lst = include_dir
         else:
             lst = [ include_dir ]
@@ -1472,7 +1477,7 @@ class env_t(object):
         @type sys_include_dir: string or list of strings
         @param sys_include_dir: string to add to the SYSTEMINCLUDE environment variable
         """
-        if isinstance(sys_include_dir,types.ListType):
+        if isinstance(sys_include_dir,list):
             lst = sys_include_dir
         else:
             lst = [ sys_include_dir ]
@@ -1488,7 +1493,7 @@ class env_t(object):
         @type link_dir: string or list of strings
         @param link_dir: string to add to the LINKPATH variable
         """
-        if isinstance(link_dir,types.ListType):
+        if isinstance(link_dir,list):
             for d in link_dir:
                 self.env['LINKPATH'].append(util.posix_slashes(d))
         else:
@@ -1505,7 +1510,7 @@ class env_t(object):
         @param value: the value to remove
         """
         if var in self.env:
-            if isinstance(self.env[var], types.ListType):
+            if isinstance(self.env[var], list):
                 try:
                     self.env[var].remove(value)
                 except:
@@ -1530,8 +1535,8 @@ class env_t(object):
         """
         if var not in self.env:
             self.env[var]  = value
-        elif isinstance(self.env[var],types.ListType):
-            if isinstance(value, types.ListType):
+        elif isinstance(self.env[var],list):
+            if isinstance(value, list):
                 self.env[var].extend(value)
             else:
                 self.env[var].append(value)
@@ -1948,7 +1953,7 @@ class env_t(object):
                     libs.append(lib)
                 else:
                     for dir in self.env['LINKPATH']:
-                        t = mbuild.join(dir,lib)
+                        t = util.join(dir,lib)
                         if os.path.exists(t):
                             #msgb("ADDING DERIVED DEPENDENCE ON LIBRARY", t)
                             libs.append(t)
@@ -1965,7 +1970,7 @@ class env_t(object):
             exename = self.build_dir_join(exename)
         d['EXENAME'] = exename
 
-        if not isinstance(objs, types.ListType):
+        if not isinstance(objs, list):
             objs = [ objs ]
         objs = self._escape_list_of_strings(objs)
         obj = " ".join(objs)
@@ -1983,7 +1988,7 @@ class env_t(object):
         if relocate:
             libname = self.build_dir_join(libname)
         d['LIBNAME'] = libname
-        if not isinstance(objs,types.ListType):
+        if not isinstance(objs,list):
             objs = [ objs ]
         objs = self._escape_list_of_strings(objs)
         obj = " ".join(objs)
@@ -1992,10 +1997,10 @@ class env_t(object):
         self._escape_dict(d)
         n = []
         scmd = self.env['STATIC_LIB_COMMAND']
-        if not isinstance(scmd,types.ListType):
+        if not isinstance(scmd,list):
             scmd = [ scmd ]
         for cmd in scmd:
-            if isinstance(cmd,types.StringType):
+            if util.is_stringish(cmd):
                 n.append(self.expand_string(cmd, d))
             else:
                 n.append(cmd)
@@ -2020,7 +2025,7 @@ class env_t(object):
             libname = self.build_dir_join(libname)
         d['LIBNAME'] = libname
         d['SOLIBNAME'] = os.path.basename(libname)
-        if not isinstance(objs,types.ListType):
+        if not isinstance(objs,list):
             objs = [ objs ]
         objs = self._escape_list_of_strings(objs)            
         obj = " ".join(objs)

@@ -25,6 +25,10 @@ import mbuild
 
 env = mbuild.env_t(init_verbose=0)
 env.parse_args()
+if not env.on_windows():
+    print ("This is a windows only test"   )
+    sys.exit(0)    
+
 #mbuild.build_env.set_env_icl(env)
 mbuild.cmkdir(env['build_dir'])
 dag  = mbuild.dag_t()

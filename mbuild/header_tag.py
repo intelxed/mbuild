@@ -17,11 +17,12 @@
 #  limitations under the License.
 #  
 #END_LEGAL
-
+from __future__ import print_function
 import sys
 import os
 import re
 from stat import *
+
 
 def _get_mode(fn):
     "get the mode of the file named fn, suitable for os.chmod() or open() calls"
@@ -90,10 +91,10 @@ def _shell_script(lines):
         second = lines[1];
         
     if re.match("#!",first):
-        #print "\t\t First script test true"
+        #print ("\t\t First script test true")
         return True
     if re.search("-\*-",first) or re.search("-\*-",second):
-        #print "\t\t Second script test true"
+        #print ("\t\t Second script test true")
         return True
     return False
 
@@ -122,7 +123,7 @@ def apply_header_to_data_file(header, file, prefix="#"):
     "apply header to file using script comment style"
     f = open(file,"r")
     mode = _get_mode(file)
-    #print "file: " + file + " mode: " + "%o"  % mode
+    #print ("file: " + file + " mode: " + "%o"  % mode)
     contents = f.readlines()
     f.close()
     trimmed_contents = _remove_existing_header(contents, prefix)
@@ -146,13 +147,13 @@ def apply_header_to_data_file(header, file, prefix="#"):
 ####################################################################
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        print "Usage " + sys.argv[0] + " [-s|-t] legal-header file-name [file-name...]\n"
+        print ("Usage " + sys.argv[0] + " [-s|-t] legal-header file-name [file-name...]\n")
         sys.exit(1)
 
     type = sys.argv[1]
     header_file = sys.argv[2]
     if not os.path.exists(header_file):
-        print "Could not find header file: [%s]\n" % (header_file)
+        print ("Could not find header file: [%s]\n" % (header_file))
         sys.exit(1)
 
     files_to_tag = sys.argv[3:]
@@ -171,5 +172,5 @@ if __name__ == '__main__':
             if  re.search(".svn",file) == None and re.search(".new$",file) == None:
                 apply_header_to_data_file(header, file.strip())
     else:
-        print "2nd argument must be -s or -t\n"
+        print ("2nd argument must be -s or -t\n")
         sys.exit(1)

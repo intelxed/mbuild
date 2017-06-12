@@ -31,7 +31,10 @@ import glob
 import types
 
 try:
-   import mbuild
+   from . import base
+   from . import dag
+   from . import util
+   from . import plan
 except:
    s = "\nXED ERROR: mfile.py could not find mbuild."  + \
        " Should be a sibling of the xed2 directory.\n\n"
@@ -55,7 +58,7 @@ def _doxygen_version_okay(s, want_major, want_minor, want_fix):
         values[2] = re.sub(r'-.*$','',values[2])
         try:
             fix = int(values[2])
-        except ValueError:
+        except ValueError as v:
             pass
     if (maj > 1) or \
            (maj == want_major and minor > want_minor) or \
@@ -79,16 +82,16 @@ def _find_doxygen(env):
            if os.path.exists(doxygen_cmd_cygwin):
               doxygen_cmd = doxygen_cmd_cygwin
            else:
-              mbuild.msgb('DOXYGEN',"Could not find cygwin's doxygen," +
+              base.msgb('DOXYGEN',"Could not find cygwin's doxygen," +
                           "trying doxygen from PATH")
         elif env['build_os'] == 'lin':
-           if mbuild.verbose(1):
-              mbuild.msgb("CHECKING FOR", doxygen_cmd_intel)
+           if base.verbose(1):
+              base.msgb("CHECKING FOR", doxygen_cmd_intel)
            if  os.path.exists(doxygen_cmd_intel):
               doxygen_cmd = doxygen_cmd_intel
         elif env['build_os'] == 'mac':
-           if mbuild.verbose(1):
-              mbuild.msgb("CHECKING FOR", doxygen_cmd_mac)
+           if base.verbose(1):
+              base.msgb("CHECKING FOR", doxygen_cmd_mac)
            if  os.path.exists(doxygen_cmd_mac):
               doxygen_cmd = doxygen_cmd_mac
     else:
@@ -96,26 +99,26 @@ def _find_doxygen(env):
         
     doxygen_cmd = env.escape_string(doxygen_cmd)
     doxygen_okay = False
-    if mbuild.verbose(1):
-        mbuild.msgb('Checking doxygen version','...')
-    if mbuild.check_python_version(2,4):
+    if base.verbose(1):
+        base.msgb('Checking doxygen version','...')
+    if base.check_python_version(2,4):
         try:
             (retval, output, error_output) = \
-                     mbuild.run_command(doxygen_cmd + " --version")
+                     util.run_command(doxygen_cmd + " --version")
             if retval==0:
                 if len(output) > 0:
                     first_line = output[0].strip()
-                    if mbuild.verbose(1):
-                        mbuild.msgb("Doxygen version", first_line)
+                    if base.verbose(1):
+                        base.msgb("Doxygen version", first_line)
                     doxygen_okay = _doxygen_version_okay(first_line, 1,4,6)
             else:
                 for o in output:
-                    mbuild.msgb("Doxygen-version-check STDOUT", o)
+                    base.msgb("Doxygen-version-check STDOUT", o)
                 if error_output:
                     for line in error_output:
-                        mbuild.msgb("STDERR ",line.rstrip())
+                        base.msgb("STDERR ",line.rstrip())
         except:
-            mbuild.die("Doxygen required by the command line options " +
+            base.die("Doxygen required by the command line options " +
                        "but no doxygen found")
             
     return (doxygen_cmd, doxygen_okay)
@@ -136,10 +139,10 @@ def _customize_doxygen_file(env, subs):
     Returns True on success"""
     
     # doxygen wants quotes around paths with spaces
-    for k,s in subs.iteritems():
+    for k,s in iter(subs.items()):
        if re.search(' ',s):
           if not re.search('^".*"$',s):
-             mbuild.die("Doxygen requires quotes around strings with spaces: [%s]->[%s]" %
+             base.die("Doxygen requires quotes around strings with spaces: [%s]->[%s]" %
                         ( k,s))
              return False
 
@@ -147,7 +150,7 @@ def _customize_doxygen_file(env, subs):
     try:
         lines =  file(env['doxygen_config']).readlines()
     except:
-        mbuild.msgb("Could not open input file: " + env['doxygen_config'])
+        base.msgb("Could not open input file: " + env['doxygen_config'])
         return False
 
     env['doxygen_config_customized'] = \
@@ -155,22 +158,22 @@ def _customize_doxygen_file(env, subs):
     try:
         ofile =  open(env['doxygen_config_customized'],'w')
     except:
-        mbuild.msgb("Could not open output file: " + env['doxygen_config_customized'])
+        base.msgb("Could not open output file: " + env['doxygen_config_customized'])
         return False
           
     # compile the patterns
     rsubs = {}
-    for k,v in subs.iteritems():
+    for k,v in iter(subs.items()):
        rsubs[k]=re.compile(r'(?P<tag>[$][(]' + k + '[)])')
 
     olines = []
     for line in  lines:
        oline = line
-       for k,p in rsubs.iteritems():
-          #print 'searching for', k, 'to replace it with', subs[k]
+       for k,p in iter(rsubs.items()):
+          #print ('searching for', k, 'to replace it with', subs[k])
           m =  p.search(oline)
           while m:
-             #print 'replacing', k, 'with', subs[k]
+             #print ('replacing', k, 'with', subs[k])
              oline = _replace_match(oline, m, subs[k], 'tag')
              m =  p.search(oline)
        olines.append(oline)
@@ -181,7 +184,7 @@ def _customize_doxygen_file(env, subs):
           ofile.write(line)
     except:
        ofile.close()
-       mbuild.msgb("Could not write output file: " + env['doxygen_config_customized'])
+       base.msgb("Could not write output file: " + env['doxygen_config_customized'])
        return False
      
     ofile.close()
@@ -191,12 +194,12 @@ def _build_doxygen_main(args, env):
     """Customize the doxygen input file. Run the doxygen command, copy
     in any images, and put the output in the right place."""
 
-    if type(args) is types.ListType:
+    if isinstance(args, list):
        if len(args) < 2:
-          mbuild.die("Need subs dictionary and  dummy file arg for the doxygen command " +
+          base.die("Need subs dictionary and  dummy file arg for the doxygen command " +
                      "to indicate its processing")       
     else:
-       mbuild.die("Need a list for _build_doxygen_main with the subs "  +
+       base.die("Need a list for _build_doxygen_main with the subs "  +
                   "dictionary and the dummy file name")
        
     (subs,dummy_file) = args
@@ -214,26 +217,26 @@ def _build_doxygen_main(args, env):
     try:
         okay = _customize_doxygen_file(env, subs)
     except:
-        mbuild.die("CUSTOMIZE DOXYGEN INPUT FILE FAILED")
+        base.die("CUSTOMIZE DOXYGEN INPUT FILE FAILED")
     if not okay:
         return (1, ['Doxygen customization failed'])
     
     cmd   = env['DOXYGEN'] + ' ' + \
             env.escape_string(env['doxygen_config_customized'])
-    if mbuild.verbose(1):
-        mbuild.msgb("RUN DOXYGEN", cmd)    
-    (retval, output, error_output) = mbuild.run_command(cmd)
+    if base.verbose(1):
+        base.msgb("RUN DOXYGEN", cmd)    
+    (retval, output, error_output) = util.run_command(cmd)
 
     for line in output:
-        mbuild.msgb("DOX",line.rstrip())
+        base.msgb("DOX",line.rstrip())
     if error_output:
         for line in error_output:
-            mbuild.msgb("DOX-ERROR",line.rstrip())
+            base.msgb("DOX-ERROR",line.rstrip())
     if retval != 0:
-        mbuild.msgb("DOXYGEN FAILED")
-        mbuild.die("Doxygen run failed. Retval=", str(retval))
-    mbuild.touch(dummy_file)
-    mbuild.msgb("DOXYGEN","succeeded")
+        base.msgb("DOXYGEN FAILED")
+        base.die("Doxygen run failed. Retval=", str(retval))
+    util.touch(dummy_file)
+    base.msgb("DOXYGEN","succeeded")
     return (0, []) # success
 
 
@@ -255,7 +258,7 @@ def _make_doxygen_reference_manual(env, doxygen_inputs, subs, work_queue,
     """Install the doxygen reference manual the doyxgen_output_dir
     directory. doxygen_inputs is a list of files """
     
-    dox_dag = mbuild.dag_t(hash_file_name,env=env)
+    dox_dag = dag.dag_t(hash_file_name,env=env)
     
     # so that the scanner can find them
     dirs = {}
@@ -278,7 +281,7 @@ def _make_doxygen_reference_manual(env, doxygen_inputs, subs, work_queue,
     if run_always:
        _build_doxygen_main([subs,dummy], env)
     else:
-       c1 = mbuild.plan_t(command=_build_doxygen_main,
+       c1 = plan.plan_t(command=_build_doxygen_main,
                           args=   [subs,dummy],
                           env=    env,
                           input=  doxygen_inputs,
@@ -288,9 +291,9 @@ def _make_doxygen_reference_manual(env, doxygen_inputs, subs, work_queue,
        okay = work_queue.build(dag=dox_dag)
        phase = "DOXYGEN"
        if not okay:
-           mbuild.die("[%s] failed. dying..." % phase)
-       if mbuild.verbose(1):
-           mbuild.msgb(phase, "build succeeded")
+           base.die("[%s] failed. dying..." % phase)
+       if base.verbose(1):
+           base.msgb(phase, "build succeeded")
 
 
 ############################################################
