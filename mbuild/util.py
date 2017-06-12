@@ -250,7 +250,7 @@ def prefix_files(dir,input_files):
     if isinstance(input_files,list):
         new_files = [join(dir,x) for x in input_files]
         return new_files
-    elif isinstance(input_files,bytes) or isinstance(input_files,str):
+    elif is_stringish(input_files):
         new_file = join(dir, input_files)
         return new_file
     die("Unhandled type in prefix_files: "+ str(type(input_files)))
@@ -1152,4 +1152,11 @@ def run_command_timed( cmd,
                                                  tc.exception_object,
                                                  tc.exception_trace))
 
-    return (exit_code, output, stderr)        
+    return (exit_code, output, stderr)
+
+def is_stringish(x):
+   return isinstance(x,bytes) or isinstance(x,str) 
+def make_list_of_str(lst):
+   return [ str(x) for x in lst]
+def open_readlines(fn, mode='r'):
+   return open(f,mode).readlines()

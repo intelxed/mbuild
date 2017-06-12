@@ -329,7 +329,7 @@ class command_t(object):
       for cmd in self.command:
          if isinstance(cmd,types.FunctionType):
             s.append("PYTHON FN: " + cmd.__name__)
-         elif isinstance(cmd,bytes):
+         elif is_stringish(cmd):
             s.append(cmd)
          else:
             s.append(str(cmd))
@@ -450,7 +450,7 @@ class command_t(object):
                (self.exit_status, output) = cmd( self.args, self.xenv )
                self._extend_output(output)
                
-            elif isinstance(cmd,bytes) or isinstance(cmd,str):
+            elif is_stringish(cmd):
                # execute command strings
                if self.output_file_name:
                   (self.exit_status, output, stderr) = \

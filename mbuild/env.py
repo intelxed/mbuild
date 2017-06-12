@@ -171,7 +171,7 @@ class env_t(object):
         msgb("VERSION", "$Id: mbuild_env.py 44 2007-03-16 15:54:44Z mjcharne $")
     def __setitem__(self,k,value):
         """Write a value to the environment dictionary"""
-        if isinstance(value,bytes):
+        if util.is_stringish(value):
             self.env[k] = util.posix_slashes(value)
         else:
             self.env[k] = value
@@ -207,9 +207,9 @@ class env_t(object):
         """
         if newenv == None:
             newenv = self.env
-        if  isinstance(command_string, bytes) or isinstance(command_string,str):
+        if util.is_stringish(command_string):
             return self._iterative_substitute(command_string, newenv)
-        if  isinstance(command_string, list):
+        if isinstance(command_string, list):
             return [ self._iterative_substitute(x, newenv) for x in command_string ]
         die("expand_string only handles substitution in strings or lists of strings")
 
@@ -231,11 +231,11 @@ class env_t(object):
             die("Could not find %s in the environment" % k)
             
             
-        if  isinstance(newenv[k],list):
+        if isinstance(newenv[k],list):
             # We must process each string in the list and do
             # substitutions on them.  For example, CPPPATH
             return [ self._iterative_substitute(x,newenv) for x in  newenv[k]]
-        if  isinstance(newenv[k], bytes):
+        if util.is_stringish(newenv[k]):
             return self._iterative_substitute("%(" + k + ")s", newenv)
         # non strings (scalars)
         return newenv[k]
@@ -266,7 +266,7 @@ class env_t(object):
             #print ("SUBSTITUTING %s" % name)
             v = dct1[name]
             # repeatedly expand any tuples that show up.
-            while not (isinstance(v,bytes) or isinstance(v,str)):
+            while not util.is_stringish(v):
                 if isinstance(v,tuple):
                     (key, dct) = v
                     
@@ -2000,7 +2000,7 @@ class env_t(object):
         if not isinstance(scmd,list):
             scmd = [ scmd ]
         for cmd in scmd:
-            if isinstance(cmd,bytes) or isinstance(cmd,str): 
+            if util.is_stringish(cmd):
                 n.append(self.expand_string(cmd, d))
             else:
                 n.append(cmd)
