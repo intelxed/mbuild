@@ -460,7 +460,7 @@ def write_signatures(fn,d):
 def read_signatures(fn):
     """Return a dictionary of d[file]=hash from the specified file"""
     try:
-        f = open(fn,"r")
+        f = open(fn,"rb")
         d = apickle.load(f)
         f.close()
         return d
