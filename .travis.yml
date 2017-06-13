@@ -10,3 +10,5 @@ install:
 
 script:
     - python tests/1.py
+    - python tests/2.py
+    - python tests/3.py
