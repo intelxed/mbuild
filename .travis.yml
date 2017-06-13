@@ -2,8 +2,8 @@ language: python
 
 python:
     - 2.7
-# 3 not supported :(
-#    - 3.5
+    - 3.5
+    - 3.6
 
 install:
     - pip install .
