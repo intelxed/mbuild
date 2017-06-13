@@ -5,6 +5,11 @@ python:
     - 3.5
     - 3.6
 
+matrix:
+    include:
+    - os: linux
+    - os: osx
+    
 install:
     - pip install .
 
