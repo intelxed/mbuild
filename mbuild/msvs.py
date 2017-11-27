@@ -746,6 +746,7 @@ def _set_msvs_dev15(env, x64_host, x64_target, regv=None): # msvs 2017
     if winkit10complete == False:
         die('need a complete winkit10 for MSVS 2017 (dev 15)')
     env['rc_winkit'] = winkit10
+    env['rc_winkit_number'] = winkit10version
 
     msvc_tools_root, msvc_ver = msvc_dir_from_vc_dir(vprefix + '/VC')
     
@@ -929,6 +930,7 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
 
     if winkit10complete:
         env['rc_winkit'] = winkit10
+        env['rc_winkit_number'] = winkit10version
     else:
         env['rc_winkit'] = winkit8
 

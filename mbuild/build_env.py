@@ -260,12 +260,11 @@ def _check_set_rc(env, sdk):
         return False
 
     if env['host_cpu'] == 'x86-64':
-        env['RC_CMD'] = os.path.join(sdk,'bin','x64','rc.exe')
+        env['RC_CMD'] = os.path.join(sdk,'x64','rc.exe')
     else:
-        env['RC_CMD'] = os.path.join(sdk,'bin','x86','rc.exe')
-        if not _path_check_rc_cmd(env):
-            env['RC_CMD'] = os.path.join(sdk,'bin','rc.exe')
-
+        env['RC_CMD'] = os.path.join(sdk,'x86','rc.exe')
+    if not _path_check_rc_cmd(env):
+        env['RC_CMD'] = os.path.join(sdk,'rc.exe')
     return _path_check_rc_cmd(env)
 
 
@@ -285,28 +284,49 @@ def _find_rc_cmd(env):
      In MSVS2008(VC9), MSVS2010 (VC10) and MSVS2012 (VC11):
        have rc.exe in the SDK directory, though the location varies
        a little for the 32b version.
-    """
-    sdks = []
-    if 'WindowsSdkDir' in env:
-        sdks.append(env['WindowsSdkDir'])
-    elif 'WindowsSdkDir' in os.environ:
-        sdks.append(os.environ['WindowsSdkDir'])
-    else:
-        # hope the user puts the location of RC on their PATH
-        env['RC_CMD'] = 'rc' 
-        return
 
-    if 'rc_winkit' in env: # set up by msvs.py for dev14
-        sdks.append(env['rc_winkit'])
+     With winsdk10 (used by MSVS2017/DEV15), rc.exe moved around from
+     version to version of the sdk. In the early versions of the SDK,
+     the rc.exe is located in:
+
+          C:\Program Files (x86)\Windows Kits\10\bin\{x86,x64}
+
+     However, in later versions (starting with 10.0.16299.0), they
+     placed the rc.exe in the numbered subdirectory:
+
+          C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\{x86,x64}
+    """
+    sdks = [] # list of directories to search
+
+    def _add_bin(s):
+        return os.path.join(s,'bin')
     
+    if 'rc_winkit_number' in env: # set up by msvs.py for dev14, dev15
+        p = "{}/bin/{}".format( env['rc_winkit'],        
+                                env['rc_winkit_number'])
+        sdks.append(p)
+        
+    if 'rc_winkit' in env: # set up by msvs.py for dev14, dev15
+        sdks.append(_add_bin(env['rc_winkit']))
+        pass
+    
+    if 'WindowsSdkDir' in env:
+        sdks.append( _add_bin(env['WindowsSdkDir']))
+    elif 'WindowsSdkDir' in os.environ:
+        sdks.append( _add_bin(os.environ['WindowsSdkDir']))
+
     for k in sdks:
         if _check_set_rc(env,k):
+            # found a good one...work with that.
             return
 
     if env['host_cpu'] == 'x86-64':
-        die("Could not find 64b RC command in SDK directory")
+        warn("Could not find 64b RC command in SDK directory; assuming on PATH")
     else:
-        die("Could not find 32b RC command in SDK directory")
+        warn("Could not find 32b RC command in SDK directory; assuming on PATH")
+    # hope the user puts the location of RC on their PATH
+    env['RC_CMD'] = 'rc' 
+
 
 
 def set_env_ms(env):
