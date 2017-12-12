@@ -1202,40 +1202,46 @@ def _figure_out_msvs_version_registry(env):
             return (str(v),vs_dir)
     return (None,None)
 
-def set_msvs_env(env):
-    x64_target=False
-    if  env['host_cpu'] == 'x86-64':
-        x64_target=True
-
-    x64_host = False
-    if  env['build_cpu'] == 'x86-64':
-        x64_host=True
-        
-    # Verify validity of chosen msvs_version in registry
-
-    uv =  0  # user version or 0 if no user version specified
-    if env['msvs_version'] != '' :
-        uv = int(env['msvs_version'])
-
-    # SEARCH FOUR WAYS
+def _find_specific_msvs_version(env,uv):
+    """Search for (integer) uv version of MSVS in registry & file system"""
     found = False
-    if uv:
-        # 1. look for specific version in registry
-        if uv < 15:
-            (vs_dir,vc_dir) = _find_msvc_in_registry(env,uv)
-            if vs_dir and vc_dir:
-                found = True
-            else:
-                warn("Could not find specified version of MSVS in registry.")
-            
-        # 2. look in file system for specific version
-        if not found:
-            env['msvs_version'] = _figure_out_msvs_version_filesystem(env, uv)
-            if env['msvs_version']:
-                found = True
-            else:
-                die("Could not find specified version of MSVS in file system.")               
+    # 1. look for specific version in registry
+    if uv < 15:
+        (vs_dir,vc_dir) = _find_msvc_in_registry(env,uv)
+        if vs_dir and vc_dir:
+            env['msvs_version'] = str(uv) 
+            found = True
+        else:
+            warn("Could not find specified version of MSVS in registry: {}".format(uv))
 
+    # 2. look in file system for specific version
+    if not found:
+        env['msvs_version'] = _figure_out_msvs_version_filesystem(env, uv)
+        if env['msvs_version']:
+            found = True
+        else:
+            warn("Could not find specified version of MSVS in file system: {}".format(uv))
+    return found
+
+
+        
+def set_msvs_env(env):
+    versions = []
+    if env['msvs_version'] != '' :
+        if ',' in env['msvs_version']:    # got a list of versions
+            versions = map(str.strip,env['msvs_version'].split(','))
+        else:
+            versions = [ env['msvs_version'] ]
+            
+    found = False
+    for uv in versions:
+        iuv = int(uv)
+        if _find_specific_msvs_version(env,iuv):
+            found = True
+            break
+    if versions and not found:
+        die("Could not find specified MSVS version(s): [{}]".format(",".join(versions)))
+    
     # 3. Trying to locate newest version in file system. Must do this
     # before generic registry search because regitry stopped being
     # updated with DEV15/MSVS2017.
@@ -1250,6 +1256,17 @@ def set_msvs_env(env):
         
     if not env['msvs_version']:
         die("Did not find MSVS version!")
+
+
+            
+    x64_target=False
+    if  env['host_cpu'] == 'x86-64':
+        x64_target=True
+
+    x64_host = False
+    if  env['build_cpu'] == 'x86-64':
+        x64_host=True
+
             
     # "express" compiler is 32b only            
     vc = None
