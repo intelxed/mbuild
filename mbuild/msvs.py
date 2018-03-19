@@ -646,29 +646,31 @@ def _get_winkit10_version(env, winkit10):
     winkit10version = None
     if 'UCRTVersion' in os.environ:
         winkit10version = os.environ['UCRTVersion']
-    if winkit10 and not winkit10version:
-        # use glob and find youngest directory
-        ctime = 0
-        for g in glob(winkit10 + '/include/*'):
-            if os.path.exists('{}/ucrt'.format(g)):
-                gtime = os.path.getctime(g)
-                if gtime > ctime:
-                    winkit10version = os.path.basename(g)
-                    ctime = gtime
-    if not winkit10version:
-        warn("Did not find winkit 10 version. RC tool may not be available")
-    msgb("UCRT Version", winkit10version)
 
     # Early versions of winkit10 that ship with MSVS2015(dev14) do not
     # have the the required stuff so people had to rely on SDK
     # 8.1. The early versions only have a ucrt subdirectory and not a
-    # "shared", "um" or "winrt" directories. We pick the "shared"
-    # directory as our guide. I could also use the version number but
-    # I have no way of knowing all the verion numbers people might
-    # have.  (In my limited experience, I've seen only 3 so far).
-    complete = True
-    if not os.path.exists('{}/include/{}/shared'.format(winkit10, winkit10version)):
+    # "shared", "um" or "winrt" directories. We use the "shared"
+    # directory as our guide.
+
+    if winkit10 and not winkit10version:
+        # use glob and find youngest named directory. This code had
+        # used os.path.getctime() but that gave the wrong result if an
+        # older SDK was installed after a younger SDK was installed.
+        dlist = glob(winkit10 + '/include/*')
+        dlist.sort(reverse=True)
+        for g in dlist:
+            if (os.path.exists('{}/shared'.format(g)) and
+                os.path.exists('{}/ucrt'.format(g))     ):
+                    winkit10version = os.path.basename(g)
+
+    if winkit10version:
+        complete = True
+        msgb("UCRT Version", winkit10version)
+    else:
         complete = False
+        warn("Did not find winkit 10 version. RC tool may not be available")
+
     return (winkit10version,complete)
 
 def _find_msvc_version_directory(root):
@@ -908,8 +910,8 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
     sdk81  = progfi + '/Microsoft SDKs/Windows/v8.1'
     sdk10a = progfi + '/Microsoft SDKs/Windows/v10.0A'
     if os.path.exists(sdk10a):
-        sdek81a = None
-        sdek81 = None
+        sdk81a = None
+        sdk81 = None
     else:
         sdk10a = None
         
@@ -971,7 +973,7 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
     if sdk10a:
         set_env('WindowsSDK_ExecutablePath_x86',
                 sdk10a + '/bin/NETFX 4.6.1 Tools/')
-    else:
+    elif sdk81a:
         set_env('WindowsSDK_ExecutablePath_x86',
                 sdk81a + '/bin/NETFX 4.5.1 Tools/')
         
@@ -979,7 +981,7 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
         if sdk10a:
             set_env('WindowsSDK_ExecutablePath_x64',
                     sdk10a +'/bin/NETFX 4.6.1 Tools/x64/')
-        else:
+        elif sdk81a:
             set_env('WindowsSDK_ExecutablePath_x64',
                     sdk81a +'/bin/NETFX 4.5.1 Tools/x64/')
 
@@ -1029,7 +1031,7 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
         if sdk10a:
             b = _find_latest_subdir(sdk10a + '/bin/')
             add_env(path, b + '/x64')
-        else:
+        elif sdk81a:
             add_env(path, sdk81a + '/bin/NETFX 4.5.1 Tools/x64')
 
     else: # 32b
@@ -1076,7 +1078,7 @@ def _set_msvs_dev14(env, x64_host, x64_target, regv=None): # msvs 2015
         if sdk10a:
             b = _find_latest_subdir(sdk10a + '/bin/')
             add_env(path, b + '/x64')
-        else:
+        elif sdk81a:
             add_env(path, sdk81a + '/bin/NETFX 4.5.1 Tools')
 
 
