@@ -98,8 +98,14 @@ def cond_die(v, cmd, msg):
 def die(m,s=''):
   """Emit an error message m (and optionally s) and exit with a return value 1"""
   msgb("MBUILD ERROR", "%s %s\n\n" % (m,s) )
-  traceback.print_exc(file=sys.stdout)
+  etype, value, tb = sys.exc_info()
+  if tb is None:
+    stack = traceback.extract_stack()[:-1]
+    traceback.print_list(stack, file=sys.stdout)
+  else:
+    traceback.print_exception(etype, value, tb, file=sys.stdout)
   sys.exit(1)
+
 def warn(m):
   """Emit an warning message"""
   msgb("MBUILD WARNING", m)
