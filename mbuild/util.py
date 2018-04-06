@@ -108,7 +108,15 @@ def list2string(ls):
     """Print a list as a string"""
     s = " ".join(ls)
     return s
-    
+
+def util_add_to_list(olst, v):
+    """Add v to olst. v can be a list or a non-list object. If v is a
+       list, extend olst. If v is not a list, append to olst. """
+    if isinstance(v,list):
+        olst.extend(v)
+    else:
+        olst.append(v)
+
 def remove_file(fn, env=None, quiet=True):
     """Remove a file or link if it exists. env parameter is not used."""
     if os.path.exists(fn):
@@ -1136,7 +1144,7 @@ def run_command_timed( cmd,
         output = fo.readlines()
         fo.close()
         fe.seek(0)
-        stderr = [''.join(fe.readlines())]
+        stderr = fe.readlines()
         fe.close()
         exit_code = _get_exit_code(tc)
 

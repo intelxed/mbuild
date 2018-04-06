@@ -202,4 +202,12 @@ def on_windows():
 def ensure_string(x):
     if isinstance(x,bytes):
         return x.decode('utf-8')
+    if isinstance(x,list):
+        o = []
+        for y in x:
+            if isinstance(y,bytes):
+                o.append( y.decode('utf-8'))
+            else:
+                o.append( y )
+        return o
     return x

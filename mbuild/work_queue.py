@@ -411,18 +411,12 @@ class command_t(object):
 
    def _extend_output(self,output):
       if output:
-            if isinstance(output,list):
-               self.output.extend(output)
-            else:
-               self.output.append(output)
+           util_add_to_list(self.output,ensure_string(output))
 
    def _extend_output_stderr(self,output, stderr):
       self._extend_output(output)
       if stderr:
-            if isinstance(stderr,list):
-               self.stderr.extend(stderr)
-            else:
-               self.stderr.append(stderr)
+           util_add_to_list(self.stderr,ensure_string(stderr))
 
    
    def execute(self):
