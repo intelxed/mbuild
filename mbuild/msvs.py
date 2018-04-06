@@ -40,37 +40,9 @@ import platform
 from .base import *
 from .util import *
 from .env import *
+from .osenv import *
 
 ########################################################################
-def set_env(v,s):
-    """Add v=s to the shell environment"""
-    if v in os.environ:
-        orig = os.environ[v]
-    else:
-        orig = ''
-        
-    # We have had issues on windows were we attempt to make the
-    # environment too long. This catches the error and prints a nice
-    # error msg.
-    try:
-        os.environ[v]=s
-    except Exception as e:
-        sys.stderr.write( str(e) + '\n')
-        sys.stderr.write("Env Variable [%s]\n" % (v))
-        sys.stderr.write("Original was [%s]\n" % (orig))
-        sys.stderr.write("New value was [%s]\n" % (s))
-        sys.exit(1)
-        
-def set_env_list(v,slist):
-    set_env(v,";".join(slist))
-
-def add_to_front(v,s):
-    """Add v=s+old_v to the shell environment"""
-    set_env(v,s + ';' + os.environ[v])
-
-def add_to_front_list(v,s):
-    add_to_front(v,';'.join(s))
-
 def add_env(v,s):
     """Add v=v;old_vs to the shell environment. Inserts at front"""
     if 0:
