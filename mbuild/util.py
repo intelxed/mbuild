@@ -672,6 +672,8 @@ def run_command(cmd,
              stderr = [stderr]
          if not isinstance(stdout,list):
              stdout = [stdout]
+         stdout = ensure_string(stdout)
+         stderr = ensure_string(stderr)
          return (sub.returncode, stdout, stderr)
       else:
          sub = subprocess.Popen(cmd_args,
@@ -688,10 +690,11 @@ def run_command(cmd,
          sub.wait()
          if not isinstance(stdout,list):
              stdout = [stdout]
+         stdout = ensure_string(stdout)
          return (sub.returncode, stdout, None)
    except OSError as e:
-       s= ["Execution failed for: %s\n" % (cmd) ]
-       s.append("Result is %s\n" % (str(e)))
+       s= [u"Execution failed for: %s\n" % (cmd) ]
+       uappend(s,"Result is %s\n" % (str(e)))
        # put the error message in stderr if there is a separate
        # stderr, otherwise put it in stdout.
        if separate_stderr:
@@ -703,6 +706,8 @@ def run_command(cmd,
            stdout = []
        elif not isinstance(stdout,list):
            stdout = [stdout]
+       stderr = ensure_string(stderr)
+       stdout = ensure_string(stdout) 
        if separate_stderr:
            stderr.extend(s)
        else:
@@ -764,15 +769,14 @@ def run_command_unbufferred(cmd,
            if prefix_line:
                msgn(prefix_line)
            msg(line)
-           lines.append(line  + "\n")
+           lines.append(ensure_string(line)  + u"\n")
            
        sub.wait()
        return (sub.returncode, lines, [])
    except OSError as e:
-       lines.append("Execution failed for: %s\n" % (cmd))
-       lines.append("Result is %s\n" % (str(e)))
-       return (1, lines,[])
-
+       uappend(lines, u"Execution failed for: %s\n" % (cmd))
+       uappend(lines, u"Result is %s\n" % (str(e)))
+       return (1, lines, [])
 
 def run_command_output_file(cmd,
                             output_file_name,
@@ -818,23 +822,22 @@ def run_command_output_file(cmd,
                               cwd=directory,
                               universal_newlines=True,
                               **kwargs)
-       #msgb("RUNNING SUBPROCESS")
        while 1:
-           #msgb("READING OUTPUT")
            line = sub.stdout.readline()
            if line == '':
                break
            line = line.rstrip()
+           # output is a byte stream, lines is a unicode list
            output.write(line + "\n")
-           lines.append(line + "\n")
+           uappend(lines,line + u"\n")
 
        output.close()
        sub.wait()
        return (sub.returncode, lines, [])
    except OSError as e:
-       lines.append("Execution failed for: %s\n" % (cmd))
-       lines.append("Result is %s\n" % (str(e)))
-       return (1, lines,[])
+       uappend(lines,"Execution failed for: %s\n" % (cmd))
+       uappend(lines,"Result is %s\n" % (str(e)))
+       return (1, lines, [])
    except:
        print("Unxpected error:", sys.exc_info()[0])
        raise
@@ -876,7 +879,7 @@ def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
        fout.close()
        return retval
    except OSError as e:
-       die("Execution failed for cmd %s\nResult is %s\n" % (cmd,str(e)))
+       die(u"Execution failed for cmd %s\nResult is %s\n" % (cmd,str(e)))
 
 def find_dir(d):
     """Look upwards for a particular filesystem directory d as a
@@ -885,7 +888,6 @@ def find_dir(d):
     last = ''
     while dir != last:
         target_dir = os.path.join(dir,d)
-        #print ("Trying %s" % (target_dir))
         if os.path.exists(target_dir):
             return target_dir
         last = dir
@@ -1143,27 +1145,29 @@ def run_command_timed( cmd,
         fo.seek(0)
         output = fo.readlines()
         fo.close()
+        output = ensure_string(output)
+        
         fe.seek(0)
         stderr = fe.readlines()
         fe.close()
+        stderr = ensure_string(stderr)
         exit_code = _get_exit_code(tc)
 
-    nl = '\n'
+    nl = u'\n'
     if tc.timed_out:
         stderr.extend([ nl,
-                        'COMMAND TIMEOUT'+nl,
-                        'KILLING PROCCESS'+nl])
+                        u'COMMAND TIMEOUT'+nl,
+                        u'KILLING PROCCESS'+nl])
     if tc.exception_type:
         stderr.extend([ nl,
-                        'COMMAND ENCOUNTERD AN EXCEPTION' + nl])
+                        u'COMMAND ENCOUNTERD AN EXCEPTION' + nl])
         stderr.extend(traceback.format_exception(tc.exception_type, 
                                                  tc.exception_object,
                                                  tc.exception_trace))
 
     return (exit_code, output, stderr)
 
-def is_stringish(x):
-   return isinstance(x,bytes) or isinstance(x,str) 
+
 def make_list_of_str(lst):
    return [ str(x) for x in lst]
 def open_readlines(fn, mode='r'):

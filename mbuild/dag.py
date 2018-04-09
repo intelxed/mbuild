@@ -567,7 +567,6 @@ class dag_t(object):
         return did_not_build
 
     def _find_loops(self, root_nodes):
-        #print ("FIND LOOPS")
 
         def _mark_loop(level,n,stack,all_sccs):
             # Tarjan's algorithm for strongly connected components
@@ -600,7 +599,6 @@ class dag_t(object):
         level = 1
 
         for v in root_nodes:     
-            #print ("MARKING", v.file_name)
             _mark_loop(level,v,stack,all_sccs)
 
         # mark nodes that are part of include-loops (and print them out)

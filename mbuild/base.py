@@ -3,7 +3,7 @@
 # Mark Charney 
 #BEGIN_LEGAL
 #
-#Copyright (c) 2016 Intel Corporation
+#Copyright (c) 2018 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -53,22 +53,25 @@ def bracket(s,m=''):
   @rtype: string
   @return: a bracketed string s and a suffixed message m
   """
-  return '[%s] %s' % (s,str(m))
+  n = convert2unicode(m)
+  return u'[{}] {}'.format(s,n)
 
 def error_msg(s,t):
   """Emit '[s] t' to stderr with a newline"""
-  sys.stderr.write(bracket(s,t) + "\n")
+  sys.stderr.write(u2output(bracket(s,t) + "\n"))
 
 def msg(s, pad=''):
   """Emit s to stdout with a newline"""
-  sys.stdout.write(pad)
-  sys.stdout.write(s)
+  # someone could pass unicode as pad...
+  sys.stdout.write(u2output(pad))
+  sys.stdout.write(u2output(s))
   sys.stdout.write("\n")
   
 def msgn(s, pad=''):
   """Emit s to stdout without a newline"""
-  sys.stdout.write(pad)  
-  sys.stdout.write(s)
+  # someone could pass unicode as pad...
+  sys.stdout.write(u2output(pad))
+  sys.stdout.write(u2output(s))
 
 def msgb(s,t='',pad=''):
   """a bracketed  string s  sent to stdout, followed by a string t"""
@@ -96,7 +99,8 @@ def cond_die(v, cmd, msg):
     die(s)
 
 def die(m,s=''):
-  """Emit an error message m (and optionally s) and exit with a return value 1"""
+  """Emit an error message m (and optionally s) and exit with a return
+     value 1"""
   msgb("MBUILD ERROR", "%s %s\n\n" % (m,s) )
   etype, value, tb = sys.exc_info()
   if tb is None:
@@ -152,10 +156,10 @@ def check_python_version(maj,minor,fix=0):
 
 
 try:
-  if check_python_version(2,4) == False:
-    die("MBUILD error: Need Python version 2.4 or later.")
+  if check_python_version(2,7) == False:
+    die("MBUILD error: Need Python version 2.7 or later.")
 except:
-  die("MBUILD error: Need Python version 2.4 or later.")
+  die("MBUILD error: Need Python version 2.7 or later.")
 
 import platform # requires python 2.3
 _on_mac = False
@@ -200,6 +204,8 @@ def on_windows():
   return _on_windows
 
 def ensure_string(x):
+    # strings in python2 turn up as bytes
+    # strings in python3 show up as strings and are unicode
     if isinstance(x,bytes):
         return x.decode('utf-8')
     if isinstance(x,list):
@@ -211,3 +217,45 @@ def ensure_string(x):
                 o.append( y )
         return o
     return x
+
+def uappend(lst,s):
+    """Make sure s is unicode before adding it to the list lst"""
+    lst.append(ensure_string(s))
+    
+def u2output(s):
+    """encode unicode string for output, but leave bytes strings as is"""
+    # we don't want to call encode for non-unicode (bytes) strings
+    # because that can generate *decode* errors. In python3 we are set
+    # since all strings are unicode and thus it is always safe to call
+    # encode on them. In python2 we must see if the string is unicode
+    # or bytes.
+    if isinstance(s,bytes):
+        t = s
+    else:  # unicode -> encode it to bytes
+        t = s.encode('utf-8')
+    return t
+
+def uprint(s):
+    """encode unicode for output and print"""
+    t = u2output(s)
+    print(t)
+    
+def is_stringish(x):
+   if isinstance(x,bytes) or isinstance(x,str):
+      return True
+   # python2 has a type unicode, which does not exist by default in
+   # python3. 
+   try:
+      return isinstance(x,unicode)
+   except:
+      pass
+   return False
+
+def convert2unicode(x):
+   """convert an arbitrary x to a unicode string"""
+   try: # python2
+       return unicode(x)
+   except: # python3
+       pass
+   return str(x)
+   
