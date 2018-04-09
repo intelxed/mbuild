@@ -263,7 +263,6 @@ class env_t(object):
             name = m.group('name')
             if name not in dct1:
                 die("Bad substitution for " + name)
-            #print ("SUBSTITUTING %s" % name)
             v = dct1[name]
             # repeatedly expand any tuples that show up.
             while not util.is_stringish(v):
@@ -298,7 +297,7 @@ class env_t(object):
             t = self._mysub(t,name,v)
             m = subs_pattern.search(t)
             if debug:
-                print (t)
+                uprint(t)
         return t
     
     def _dosub_old(self,s,d):

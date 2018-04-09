@@ -669,9 +669,11 @@ def run_command(cmd,
                                 **kwargs)
          (stdout, stderr ) = sub.communicate()
          if not isinstance(stderr,list):
-             stderr = ensure_string([stderr])
+             stderr = [stderr]
          if not isinstance(stdout,list):
-             stdout = ensure_string([stdout])
+             stdout = [stdout]
+         stdout = ensure_string(stdout)
+         stderr = ensure_string(stderr)
          return (sub.returncode, stdout, stderr)
       else:
          sub = subprocess.Popen(cmd_args,
@@ -686,13 +688,13 @@ def run_command(cmd,
                                 **kwargs)
          stdout = sub.stdout.readlines()
          sub.wait()
-         stdout = ensure_string(stdout)
          if not isinstance(stdout,list):
              stdout = [stdout]
+         stdout = ensure_string(stdout)
          return (sub.returncode, stdout, None)
    except OSError as e:
        s= [u"Execution failed for: %s\n" % (cmd) ]
-       s.append("Result is %s\n" % (str(e)))
+       uappend(s,"Result is %s\n" % (str(e)))
        # put the error message in stderr if there is a separate
        # stderr, otherwise put it in stdout.
        if separate_stderr:
@@ -772,10 +774,9 @@ def run_command_unbufferred(cmd,
        sub.wait()
        return (sub.returncode, lines, [])
    except OSError as e:
-       lines.append("Execution failed for: %s\n" % (cmd))
-       lines.append("Result is %s\n" % (str(e)))
-       return (1, lines,[])
-
+       uappend(lines, u"Execution failed for: %s\n" % (cmd))
+       uappend(lines, u"Result is %s\n" % (str(e)))
+       return (1, lines, [])
 
 def run_command_output_file(cmd,
                             output_file_name,
@@ -821,23 +822,22 @@ def run_command_output_file(cmd,
                               cwd=directory,
                               universal_newlines=True,
                               **kwargs)
-       #msgb("RUNNING SUBPROCESS")
        while 1:
-           #msgb("READING OUTPUT")
            line = sub.stdout.readline()
            if line == '':
                break
            line = line.rstrip()
+           # output is a byte stream, lines is a unicode list
            output.write(line + "\n")
-           lines.append(line + "\n")
+           uappend(lines,line + u"\n")
 
        output.close()
        sub.wait()
        return (sub.returncode, lines, [])
    except OSError as e:
-       lines.append("Execution failed for: %s\n" % (cmd))
-       lines.append("Result is %s\n" % (str(e)))
-       return (1, lines,[])
+       uappend(lines,"Execution failed for: %s\n" % (cmd))
+       uappend(lines,"Result is %s\n" % (str(e)))
+       return (1, lines, [])
    except:
        print("Unxpected error:", sys.exc_info()[0])
        raise
@@ -879,7 +879,7 @@ def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
        fout.close()
        return retval
    except OSError as e:
-       die("Execution failed for cmd %s\nResult is %s\n" % (cmd,str(e)))
+       die(u"Execution failed for cmd %s\nResult is %s\n" % (cmd,str(e)))
 
 def find_dir(d):
     """Look upwards for a particular filesystem directory d as a
@@ -888,7 +888,6 @@ def find_dir(d):
     last = ''
     while dir != last:
         target_dir = os.path.join(dir,d)
-        #print ("Trying %s" % (target_dir))
         if os.path.exists(target_dir):
             return target_dir
         last = dir

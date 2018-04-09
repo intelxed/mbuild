@@ -890,7 +890,7 @@ class work_queue_t(object):
             # some stuff did not build, force an error status return
             msgb("ERROR: DID NOT BUILD SOME STUFF", "\n\t".join(did_not_build))
             if self.dag:
-                  print (self.dag.dump())
+                  uprint(self.dag.dump())
             self.end_time = get_time()
             self._cleanup()
             return False

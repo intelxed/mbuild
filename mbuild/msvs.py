@@ -75,10 +75,10 @@ def add_env(v,s):
     """Add v=v;old_vs to the shell environment. Inserts at front"""
     if 0:
         if os.path.exists(s):
-            tag = "GOOD"
+            tag = u"GOOD"
         else:
-            tag = "BAD"
-        print ("{} {}".format(tag,s))
+            tag = u"BAD"
+        uprint(u"{} {}".format(tag,s))
     v.insert(0,s)
 ########################################################################
 
