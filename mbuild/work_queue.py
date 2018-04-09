@@ -339,9 +339,6 @@ class command_t(object):
    def dump(self, tab_output=False, show_output=True):
       s = []
       nl = '\n'
-      #s.append( bracket('ID          ', str(self.id)))
-      #s.append(nl)
-
       if verbose(1):
          pass
       elif self.failed():
@@ -388,23 +385,26 @@ class command_t(object):
          if self.output_file_name:
             s.append(bracket('OUTPUT FILE', self.output_file_name))
             s.append(nl)
-
+            
+         # stdout and stderr frequently have unicode   
+         s = ensure_string(s)
          if self.unbufferred == False and self.output_file_name==None:
             if show_output and self.show_output and self.stdout_exists():
-               s.append(bracket('OUTPUT'))
-               s.append(nl)
+               uappend(s,bracket('OUTPUT'))
+               uappend(s,nl)
                for line in self.output:
                   if tab_output:
-                     s.append('\t')
-                  s.append(ensure_string(line))
+                     uappend(s,'\t')
+                  uappend(s,line)
             if show_output and self.show_output and self.stderr_exists():
-               s.append(bracket('STDERR'))
-               s.append(nl)
+               uappend(s,bracket('STDERR'))
+               uappend(s,nl)
+               
                for line in self.stderr:
                   if tab_output:
-                     s.append('\t')
-                  s.append(line)
-      return "".join(s)
+                     uappend(s,'\t')
+                  uappend(s,line)
+      return u"".join(s)
    
    def __str__(self):
       return self.dump()
@@ -957,7 +957,7 @@ class work_queue_t(object):
                for x in self.dag._enable_successors(c):
                   self.add(x.creator)
          if c and (self.show_errors_only==False or c.failed()):
-            print (c.dump(show_output=show_output))
+            uprint(c.dump(show_output=show_output))
          if self._done():
             break;
       return okay
@@ -1003,7 +1003,7 @@ class work_queue_t(object):
                      for x in self.dag._enable_successors(c):
                         self.add(x.creator)
                if self.show_errors_only==False or c.failed():
-                  print (c.dump(show_output=show_output))
+                  uprint(c.dump(show_output=show_output))
                self._status()
          if self._done():
             break;

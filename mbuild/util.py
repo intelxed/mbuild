@@ -669,9 +669,9 @@ def run_command(cmd,
                                 **kwargs)
          (stdout, stderr ) = sub.communicate()
          if not isinstance(stderr,list):
-             stderr = [stderr]
+             stderr = ensure_string([stderr])
          if not isinstance(stdout,list):
-             stdout = [stdout]
+             stdout = ensure_string([stdout])
          return (sub.returncode, stdout, stderr)
       else:
          sub = subprocess.Popen(cmd_args,
@@ -686,11 +686,12 @@ def run_command(cmd,
                                 **kwargs)
          stdout = sub.stdout.readlines()
          sub.wait()
+         stdout = ensure_string(stdout)
          if not isinstance(stdout,list):
              stdout = [stdout]
          return (sub.returncode, stdout, None)
    except OSError as e:
-       s= ["Execution failed for: %s\n" % (cmd) ]
+       s= [u"Execution failed for: %s\n" % (cmd) ]
        s.append("Result is %s\n" % (str(e)))
        # put the error message in stderr if there is a separate
        # stderr, otherwise put it in stdout.
@@ -703,6 +704,8 @@ def run_command(cmd,
            stdout = []
        elif not isinstance(stdout,list):
            stdout = [stdout]
+       stderr = ensure_string(stderr)
+       stdout = ensure_string(stdout) 
        if separate_stderr:
            stderr.extend(s)
        else:
@@ -764,7 +767,7 @@ def run_command_unbufferred(cmd,
            if prefix_line:
                msgn(prefix_line)
            msg(line)
-           lines.append(line  + "\n")
+           lines.append(ensure_string(line)  + u"\n")
            
        sub.wait()
        return (sub.returncode, lines, [])
@@ -1143,19 +1146,22 @@ def run_command_timed( cmd,
         fo.seek(0)
         output = fo.readlines()
         fo.close()
+        output = ensure_string(output)
+        
         fe.seek(0)
         stderr = fe.readlines()
         fe.close()
+        stderr = ensure_string(stderr)
         exit_code = _get_exit_code(tc)
 
-    nl = '\n'
+    nl = u'\n'
     if tc.timed_out:
         stderr.extend([ nl,
-                        'COMMAND TIMEOUT'+nl,
-                        'KILLING PROCCESS'+nl])
+                        u'COMMAND TIMEOUT'+nl,
+                        u'KILLING PROCCESS'+nl])
     if tc.exception_type:
         stderr.extend([ nl,
-                        'COMMAND ENCOUNTERD AN EXCEPTION' + nl])
+                        u'COMMAND ENCOUNTERD AN EXCEPTION' + nl])
         stderr.extend(traceback.format_exception(tc.exception_type, 
                                                  tc.exception_object,
                                                  tc.exception_trace))
