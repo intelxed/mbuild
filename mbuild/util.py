@@ -822,17 +822,15 @@ def run_command_output_file(cmd,
                               cwd=directory,
                               universal_newlines=True,
                               **kwargs)
-       while 1:
-           line = sub.stdout.readline()
-           if line == '':
-               break
-           line = line.rstrip()
-           # output is a byte stream, lines is a unicode list
-           output.write(line + "\n")
-           uappend(lines,line + u"\n")
-
+       
+       (stdout, stderr) = sub.communicate()
+       if not isinstance(stdout,list):
+             stdout = [stdout]
+       stdout = ensure_string(stdout)
+       for line in stdout:
+           output.write(line)
+           lines.append(line)
        output.close()
-       sub.wait()
        return (sub.returncode, lines, [])
    except OSError as e:
        uappend(lines,"Execution failed for: %s\n" % (cmd))
