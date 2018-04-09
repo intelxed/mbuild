@@ -24,6 +24,8 @@ import sys
 import shutil
 import re
 
+from .base import *
+from .util import *
 
 class arar_error(Exception):
     def __init__(self, value):
