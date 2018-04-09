@@ -91,10 +91,8 @@ def _shell_script(lines):
         second = lines[1];
         
     if re.match("#!",first):
-        #print ("\t\t First script test true")
         return True
     if re.search("-\*-",first) or re.search("-\*-",second):
-        #print ("\t\t Second script test true")
         return True
     return False
 
@@ -123,7 +121,6 @@ def apply_header_to_data_file(header, file, prefix="#"):
     "apply header to file using script comment style"
     f = open(file,"r")
     mode = _get_mode(file)
-    #print ("file: " + file + " mode: " + "%o"  % mode)
     contents = f.readlines()
     f.close()
     trimmed_contents = _remove_existing_header(contents, prefix)

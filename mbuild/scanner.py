@@ -85,13 +85,11 @@ def mbuild_scan(fn, search_path):
 
     with _open_errors(fn) as f:
         for line in f:
-            #print (line)
             hgroup = mbuild_include_pattern.match(line)
             if not hgroup:
                 hgroup = mbuild_nasm_include_pattern.match(line)
             if hgroup:
                 hname =  hgroup.group('hdr')
-                #print (hname)
                 full_name = mbuild_compute_path(hname, aug_search_path)
                 if full_name:
                     hr = mbuild_header_record_t(full_name)
