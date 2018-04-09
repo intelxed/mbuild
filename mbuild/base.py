@@ -53,7 +53,8 @@ def bracket(s,m=''):
   @rtype: string
   @return: a bracketed string s and a suffixed message m
   """
-  return '[{}] {}'.format(s,str(m))
+  n = convert2unicode(m)
+  return u'[{}] {}'.format(s,n)
 
 def error_msg(s,t):
   """Emit '[s] t' to stderr with a newline"""
@@ -238,3 +239,23 @@ def uprint(s):
     """encode unicode for output and print"""
     t = u2output(s)
     print(t)
+    
+def is_stringish(x):
+   if isinstance(x,bytes) or isinstance(x,str):
+      return True
+   # python2 has a type unicode, which does not exist by default in
+   # python3. 
+   try:
+      return isinstance(x,unicode)
+   except:
+      pass
+   return False
+
+def convert2unicode(x):
+   """convert an arbitrary x to a unicode string"""
+   try: # python2
+       return unicode(x)
+   except: # python3
+       pass
+   return str(x)
+   
