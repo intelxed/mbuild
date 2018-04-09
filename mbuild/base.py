@@ -229,17 +229,24 @@ def u2output(s):
     # since all strings are unicode and thus it is always safe to call
     # encode on them. In python2 we must see if the string is unicode
     # or bytes.
-    if isinstance(s,bytes):
-        t = s
-    else:  # unicode -> encode it to bytes
-        t = s.encode('utf-8')
-    return t
+
+    # python3 does not sys.stdout.write() "byte" objects so we just
+    # leave stuff as unicode strings in python3.
+    
+    ver = sys.version_info
+    if ver[0] == 2:
+        if isinstance(s,bytes):
+            t = s
+        else:  # unicode -> encode it to bytes
+            t = s.encode('utf-8')
+        return t
+    return s
 
 def uprint(s):
     """encode unicode for output and print"""
     t = u2output(s)
     print(t)
-    
+
 def is_stringish(x):
    if isinstance(x,bytes) or isinstance(x,str):
       return True
