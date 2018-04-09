@@ -1168,7 +1168,16 @@ def run_command_timed( cmd,
     return (exit_code, output, stderr)
 
 def is_stringish(x):
-   return isinstance(x,bytes) or isinstance(x,str) 
+   if isinstance(x,bytes) or isinstance(x,str):
+      return True
+   # python2 has a type unicode, which does not exist by default in
+   # python3. 
+   try:
+      return isinstance(x,unicode)
+   except:
+      pass
+   return False
+
 def make_list_of_str(lst):
    return [ str(x) for x in lst]
 def open_readlines(fn, mode='r'):
