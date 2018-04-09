@@ -28,7 +28,7 @@ env.parse_args()
 
 env['jobs']=1
 work_queue = mbuild.work_queue_t(env['jobs'])
-all_cmds = [ '/bin/ls -R ../..' ]
+all_cmds = [ '/bin/ls -R ..' ]
 subs = {}
 command_list = []
 for cmd in all_cmds:
