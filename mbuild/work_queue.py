@@ -959,8 +959,13 @@ class work_queue_t(object):
             if self.dag:
                for x in self.dag._enable_successors(c):
                   self.add(x.creator)
-         if c and (self.show_errors_only==False or c.failed()):
-            uprint(c.dump(show_output=show_output))
+         if c:
+            if self.show_errors_only==False or c.failed():
+               uprint(c.dump(show_output=show_output))
+            elif c.targets:
+                pfx = u'\tBUILT: '
+                tgts = pfx.join(c.targets)
+                uprint(u'{}{}'.format(pfx, tgts))
          if self._done():
             break;
       return okay
