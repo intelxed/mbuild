@@ -409,14 +409,17 @@ class command_t(object):
    def __str__(self):
       return self.dump()
 
-   def _extend_output(self,output):
-      if output:
-           util_add_to_list(self.output,ensure_string(output))
+   def _extend_output(self, lines):
+      if lines:
+           util_add_to_list(self.output,ensure_string(lines))
 
-   def _extend_output_stderr(self,output, stderr):
+   def _extend_stderr(self, lines):
+      if lines:
+           util_add_to_list(self.stderr,ensure_string(lines))
+           
+   def _extend_output_stderr(self, output, stderr):
       self._extend_output(output)
-      if stderr:
-           util_add_to_list(self.stderr,ensure_string(stderr))
+      self._extend_stderr(stderr)
 
    
    def execute(self):
@@ -485,7 +488,7 @@ class command_t(object):
                break;
          except Exception as e:
             self.exit_status = 1
-            self.stderr.append("Execution error for: %s\n%s" % (str(e), self.dump()))
+            self._extend_stderr(u"Execution error for: %s\n%s" % (ustr(e), self.dump()))
             break
 
       self.end_time = get_time()
