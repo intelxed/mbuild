@@ -24,6 +24,7 @@ path-name manipulation, and command execution."""
 import os
 import re
 import glob
+import io # for io.open
 import sys
 import shutil
 import stat
@@ -810,7 +811,7 @@ def run_command_output_file(cmd,
    lines = []
    cmd_args = _prepare_cmd(cmd)
    try:
-       output = open(output_file_name,"w")
+       output = io.open(output_file_name,"wt",encoding='utf-8')
        input_file_obj = _cond_open_input_file(directory, input_file_name)
        sub = subprocess.Popen(cmd_args,
                               shell=use_shell,
@@ -862,8 +863,8 @@ def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
    use_shell = False
    cmd_args = _prepare_cmd(cmd)
    try:
-       fin = open(fn_i,'r')
-       fout = open(fn_o,'w')
+       fin = io.open(fn_i, 'rt', encoding='utf-8')
+       fout = io.open(fn_o, 'wt', encoding='utf-8')
        sub = subprocess.Popen(cmd_args, 
                               shell=use_shell, 
                               executable=shell_executable, 
@@ -1168,5 +1169,5 @@ def run_command_timed( cmd,
 
 def make_list_of_str(lst):
    return [ str(x) for x in lst]
-def open_readlines(fn, mode='r'):
-   return open(f,mode).readlines()
+def open_readlines(fn, mode='rt',enc='utf-8'):
+   return io.open(f,mode,encoding=enc).readlines()
