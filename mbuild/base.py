@@ -24,6 +24,8 @@ import os
 import sys
 import traceback
 
+PY3 = sys.version_info > (3,)
+
 _mbuild_verbose_level = 1
 def verbose(level=0):
   """Return True if the configured message level supplied is >= the
@@ -203,16 +205,43 @@ def on_windows():
   global _on_windows
   return _on_windows
 
+
+######  
+
+# UNICODE SUPPORT FEATURES for PY2/PY3 co-existence
+
+   
+# unicode string constructors
+if PY3:
+    ustr = str
+else:
+    ustr = unicode  # converts its argument to a unicode object
+
+# binary data strings constructors
+if PY3:
+    bstr = bytes
+else:
+    bstr = str
+
+def unicode2bytes(us):
+    """convert a unicode object (unicode type in python2 or string type in
+       python3) to bytes suitable for writing to a file."""
+    return us.encode('utf-8')
+
+def bytes2unicode(bs):
+    """Convert a bytes object or a python2 string to unicode"""
+    return bs.decode('utf-8')
+
 def ensure_string(x):
     # strings in python2 turn up as bytes
     # strings in python3 show up as strings and are unicode
     if isinstance(x,bytes):
-        return x.decode('utf-8')
+        return bytes2unicode(x)
     if isinstance(x,list):
         o = []
         for y in x:
             if isinstance(y,bytes):
-                o.append( y.decode('utf-8'))
+                o.append( bytes2unicode(y) )
             else:
                 o.append( y )
         return o
@@ -223,23 +252,23 @@ def uappend(lst,s):
     lst.append(ensure_string(s))
     
 def u2output(s):
-    """encode unicode string for output, but leave bytes strings as is"""
+    """encode unicode string for output to stderr/stdout, but leave bytes
+       strings as is. Python3 can print unicode to stdout/stderr if
+       the locale (LANG env var, etc.) supports it.    """
     # we don't want to call encode for non-unicode (bytes) strings
     # because that can generate *decode* errors. In python3 we are set
     # since all strings are unicode and thus it is always safe to call
     # encode on them. In python2 we must see if the string is unicode
     # or bytes.
 
-    # python3 does not sys.stdout.write() "byte" objects so we just
-    # leave stuff as unicode strings in python3.
-    
-    ver = sys.version_info
-    if ver[0] == 2:
-        if isinstance(s,bytes):
-            t = s
-        else:  # unicode -> encode it to bytes
-            t = s.encode('utf-8')
-        return t
+    # python3 does not allow bytes objects as arguments to
+    # sys.stdout.write() so we just leave stuff as unicode strings in
+    # python3. If LANG is not C, that works. If LANG is C, wait for
+    # python 3.7 in mid June 2018. Or just do not use LANG = C!
+
+    if not PY3:
+        if isinstance(s,unicode):
+            return unicode2bytes(s)
     return s
 
 def uprint(s):
@@ -251,18 +280,11 @@ def is_stringish(x):
    if isinstance(x,bytes) or isinstance(x,str):
       return True
    # python2 has a type unicode, which does not exist by default in
-   # python3. 
-   try:
+   # python3.
+   if not PY3:
       return isinstance(x,unicode)
-   except:
-      pass
    return False
 
 def convert2unicode(x):
    """convert an arbitrary x to a unicode string"""
-   try: # python2
-       return unicode(x)
-   except: # python3
-       pass
-   return str(x)
-   
+   return ustr(x)
