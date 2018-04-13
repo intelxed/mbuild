@@ -963,9 +963,8 @@ class work_queue_t(object):
             if self.show_errors_only==False or c.failed():
                uprint(c.dump(show_output=show_output))
             elif c.targets:
-                pfx = u'\tBUILT: '
-                tgts = pfx.join(c.targets)
-                uprint(u'{}{}'.format(pfx, tgts))
+                for x in c.targets:
+                    uprint(u'\tBUILT: {}'.format(x))
          if self._done():
             break;
       return okay
