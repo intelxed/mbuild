@@ -41,6 +41,7 @@ except:
 
 from .base import *
 
+
 def find_python(env):
     """return path to NON cygwin"""
     pycmd = sys.executable # use whatever the user invoked us with
@@ -670,9 +671,9 @@ def run_command(cmd,
                                 **kwargs)
          (stdout, stderr ) = sub.communicate()
          if not isinstance(stderr,list):
-             stderr = [stderr]
+             stderr = stderr.splitlines(True)
          if not isinstance(stdout,list):
-             stdout = [stdout]
+             stdout = stdout.splitlines(True)
          stdout = ensure_string(stdout)
          stderr = ensure_string(stderr)
          return (sub.returncode, stdout, stderr)
@@ -690,7 +691,7 @@ def run_command(cmd,
          stdout = sub.stdout.readlines()
          sub.wait()
          if not isinstance(stdout,list):
-             stdout = [stdout]
+             stdout = stdout.splitlines(True)
          stdout = ensure_string(stdout)
          return (sub.returncode, stdout, None)
    except OSError as e:
@@ -702,11 +703,11 @@ def run_command(cmd,
            if stderr == None:
                stderr = []
            elif not isinstance(stderr,list):
-               stderr = [stderr]
+               stderr = stderr.splitlines(True)
        if stdout == None:
            stdout = []
        elif not isinstance(stdout,list):
-           stdout = [stdout]
+           stdout = stdout.splitlines(True)
        stderr = ensure_string(stderr)
        stdout = ensure_string(stdout) 
        if separate_stderr:
@@ -826,7 +827,7 @@ def run_command_output_file(cmd,
        
        (stdout, stderr) = sub.communicate()
        if not isinstance(stdout,list):
-             stdout = [stdout]
+             stdout = stdout.splitlines(True)
        stdout = ensure_string(stdout)
        for line in stdout:
            output.write(line)
