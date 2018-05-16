@@ -724,8 +724,9 @@ class work_queue_t(object):
 
    def _status(self):
       if self.show_progress or verbose(2):
-         s = ( 'RUNNING: %d    PENDING: %d    COMPLETED: %d   ' +
+         s = ( '[STATUS] RUNNING: %d    PENDING: %d    COMPLETED: %d   ' +
                'ERRORS: %d   ELAPSED: %s %s' )
+         s = ( 'R: %d P: %d C: %d E: %d / %s %s' )
          cur_time = get_time()
          
          changed = False
@@ -752,13 +753,12 @@ class work_queue_t(object):
              self.last_finished = self.finished
              self.last_running = self.running
              
-             msgb('STATUS', 
-                  s % (self.running,
-                       self.pending,
-                       self.finished,
-                       self.errors,
-                       get_elapsed_time(self.start_time, get_time()),
-                       self._command_names()))
+             msg(s % (self.running,
+                      self.pending,
+                      self.finished,
+                      self.errors,
+                      get_elapsed_time(self.start_time, get_time()),
+                      self._command_names()))
 
    def _start_more_jobs(self):
       """If there are jobs to start and we didn't hit our parallelism
