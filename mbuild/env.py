@@ -452,6 +452,8 @@ class env_t(object):
 
         if 'HOME' in os.environ:
             self.env['home'] = os.environ['HOME']
+        elif self.on_windows() and 'USERPROFILE' in os.environ:
+            self.env['home'] = os.environ['USERPROFILE']
         else:
             self.env['home'] = 'unknown'
 
