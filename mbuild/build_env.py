@@ -40,8 +40,8 @@ def set_compiler_env_common(env):
     env['debug_flag_link'] = ( 'debug', { True: '%(DEBUGFLAG_LINK)s',
                                           False:''})
 
-    win_shared_compile_dict = ( 'compiler', { 'ms': '/MD',
-                                              'icl': '/MD', 
+    win_shared_compile_dict = ( 'compiler', { 'ms': ( 'debug', { True: '/MDd', False: '/MD' }),
+                                              'icl': ( 'debug', { True: '/MDd', False: '/MD' }), 
                                               'otherwise': '',
                                               })
 
@@ -52,8 +52,21 @@ def set_compiler_env_common(env):
                                           'otherwise': '',
                                           })
     
+    win_static_compile_dict = ( 'compiler', { 'ms': ( 'debug', { True: '/MTd', False: '/MT' }),
+                                              'icl': ( 'debug', { True: '/MTd', False: '/MT' }), 
+                                              'otherwise': '',
+                                              })
+
+    static_compile_dict = ( 'host_os', { 'android': '',
+                                          'lin': '',
+                                          'win': win_static_compile_dict,
+                                          'bsd': '',
+                                          'otherwise': '',
+                                          })
+    
     env['shared_compile_flag'] =  ( 'shared', { True: shared_compile_dict,
-                                                False:''})
+                                                False: static_compile_dict
+												})
     
     shared_link_dict =  ('compiler', { 'ms':'/dll',
                                        'icl':'/dll',
