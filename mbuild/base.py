@@ -25,6 +25,9 @@ import sys
 import traceback
 
 PY3 = sys.version_info > (3,)
+def is_python3():
+    global PY3
+    return PY3
 
 _mbuild_verbose_level = 1
 def verbose(level=0):
@@ -265,7 +268,7 @@ def u2output(s):
     # sys.stdout.write() so we just leave stuff as unicode strings in
     # python3. If LANG is not C, that works. If LANG is C, wait for
     # python 3.7 in mid June 2018. Or just do not use LANG = C!
-
+    global PY3
     if not PY3:
         if isinstance(s,unicode):
             return unicode2bytes(s)
@@ -277,6 +280,7 @@ def uprint(s):
     print(t)
 
 def is_stringish(x):
+   global PY3
    if isinstance(x,bytes) or isinstance(x,str):
       return True
    # python2 has a type unicode, which does not exist by default in
