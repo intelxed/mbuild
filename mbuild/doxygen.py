@@ -148,7 +148,7 @@ def _customize_doxygen_file(env, subs):
 
     # input and output files
     try:
-        lines =  file(env['doxygen_config']).readlines()
+        lines =  open(env['doxygen_config']).readlines()
     except:
         base.msgb("Could not open input file: " + env['doxygen_config'])
         return False
@@ -264,7 +264,7 @@ def _make_doxygen_reference_manual(env, doxygen_inputs, subs, work_queue,
     dirs = {}
     for f in doxygen_inputs:
        dirs[os.path.dirname(f)]=True
-    for d in dirs.iterkeys():
+    for d in dirs.keys():
        env.add_include_dir(d)
 
     # make sure the config and top file are in the inptus list
