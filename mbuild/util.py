@@ -131,9 +131,9 @@ def remove_file(fn, env=None, quiet=True):
     return (0, [])
 def remove_tree(dir_name, env=None, dangerous=False):
     """Remove a directory if it exists. env parameter is not
-    used. This will not remove a directory that has a .svn
+    used. This will not remove a directory that has a .svn or .git
     subdirectory indicating it is a source directory. Warning: It does
-    not look recursively for .svn subdirectories.
+    not look recursively for .svn/.git subdirectories.
     @type  dir_name: string
     @param dir_name: a directory name
     @type env: L{env_t}
@@ -141,12 +141,18 @@ def remove_tree(dir_name, env=None, dangerous=False):
     @type  dangerous: bool 
     @param dangerous: optional. If True,will delete anything including svn trees!! BE CAREFUL! default False.
     """
+
+    def _important_file(dir_name):
+        for idir in ['.git', '.svn']:
+            if os.path.exists(os.path.join(dir_name, idir)):
+                return True
+        return False
+    
     if verbose(1):
         msgb("CHECKING", dir_name)
     if os.path.exists(dir_name):
-       if not dangerous and os.path.exists(os.path.join(dir_name, ".svn")):
-           s = 'Did not remove directory %s because of a .svn subdirectory' % \
-               dir_name
+       if not dangerous and _important_file(dir_name):
+           s = 'Did not remove directory {} because of a .svn/.git subdirectory'.format(dir_name)
            warn(s)
            return (1, [ s ])
        if verbose(1):
@@ -394,12 +400,17 @@ def posix_slashes(s):
        t.append(x)
    return ''.join(t)
 
-def glob(s):
-    """Run the normal glob.glob() on s but make sure all the slashes
-    are flipped forward afterwards. This is shorthand for
-    posix_slashes(glob.glob(s))"""
+def glob(*s):
+    """If multiple arguments are passed, we run them through mbuild.join()
+    first. Run the normal glob.glob() on s but make sure all the
+    slashes are flipped forward afterwards. This is shorthand for
+    posix_slashes(glob.glob(s))    """
     import glob
-    return posix_slashes(glob.glob(s))
+    if len(s) > 1:
+        t = join(*s)
+    else:
+        t = s[0]
+    return posix_slashes(glob.glob(t))
 
 def cond_add_quotes(s):
    """If there are spaces in the input string s, put quotes around the
