@@ -275,7 +275,7 @@ class dag_t(object):
         # dictionary of _mbuild_storage_object_t's by file name.
         self.old_signatures = {}
 
-        # if you car about changes to the python functions, then
+        # if you care about changes to the python functions, then
         # include the python sources in the list of inputs. This
         # feature _python_commands_changed is deprecated.
         self._python_commands_changed = False
