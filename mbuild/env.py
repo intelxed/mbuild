@@ -440,25 +440,27 @@ class env_t(object):
         self.env['uname'] = platform.uname()
         self.env['hostname'] = platform.node()
         self.env['system'] = platform.system() # sort of like build_os
+        
         # distro is the empty string on mac and windows
-        if util.check_python_version(3,8):
-            # With python 3.8 one needs to install the python "distro"
-            # package to obtain the linux distro information. I do not
-            # want to require users to install a non-default package
-            # so we'll have to live without the distro information.
-            # People who require it can "python3 -m pip install distro"
-            try:
-                import distro
-                (distro, distro_ver, distro_id) = distro.linux_distribution()
-            except:
-                distro = "linux-unknown"
-                distro_ver = "unknown"
-                
-        elif util.check_python_version(2,6):
-            (distro, distro_ver, distro_id) = platform.linux_distribution()
-        else:
-            distro = ''
-            distro_ver = ''
+        distro = ''
+        distro_ver = ''
+        if  not self.on_mac()  and   not self.on_windows():
+            if util.check_python_version(3,8):
+                # With python 3.8 one needs to install the python "distro"
+                # package to obtain the linux distro information. I do not
+                # want to require users to install a non-default package
+                # so we'll have to live without the distro information.
+                # People who require it can "python3 -m pip install distro"
+                try:
+                    import distro
+                    (distro, distro_ver, distro_id) = distro.linux_distribution()
+                except:
+                    distro = "linux-unknown"
+                    distro_ver = "unknown"
+
+            elif util.check_python_version(2,6):
+                (distro, distro_ver, distro_id) = platform.linux_distribution()
+
         self.env['distro'] = distro.strip()
         self.env['distro_version'] = distro_ver
 
