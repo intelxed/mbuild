@@ -445,10 +445,15 @@ class env_t(object):
             # With python 3.8 one needs to install the python "distro"
             # package to obtain the linux distro information. I do not
             # want to require users to install a non-default package
-            # so we'll have to live without the distro information
-            # until something requires that information
-            distro = "linux-unknown"
-            distro_ver = "unknown"
+            # so we'll have to live without the distro information.
+            # People who require it can "python3 -m pip install distro"
+            try:
+                import distro
+                (distro, distro_ver, distro_id) = distro.linux_distribution()
+            except:
+                distro = "linux-unknown"
+                distro_ver = "unknown"
+                
         elif util.check_python_version(2,6):
             (distro, distro_ver, distro_id) = platform.linux_distribution()
         else:
