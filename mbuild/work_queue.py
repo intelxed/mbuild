@@ -2,7 +2,7 @@
 # Mark Charney 
 #BEGIN_LEGAL
 #
-#Copyright (c) 2017x Intel Corporation
+#Copyright (c) 2019 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -253,7 +253,7 @@ class command_t(object):
          if not isinstance(i,types.FunctionType):
             s.append(i)
       t = " - ".join(s)
-      h = hash_string(t.encode('utf-8'))
+      h = hash_string(t.encode(unicode_encoding()))
       return h
    
    def add_before_me(self,n):

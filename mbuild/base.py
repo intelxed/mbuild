@@ -3,7 +3,7 @@
 # Mark Charney 
 #BEGIN_LEGAL
 #
-#Copyright (c) 2018 Intel Corporation
+#Copyright (c) 2019 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -23,6 +23,11 @@
 import os
 import sys
 import traceback
+import locale
+
+_MBUILD_ENCODING = locale.getpreferredencoding()
+def unicode_encoding():
+    return _MBUILD_ENCODING
 
 PY3 = sys.version_info > (3,)
 def is_python3():
@@ -229,11 +234,11 @@ else:
 def unicode2bytes(us):
     """convert a unicode object (unicode type in python2 or string type in
        python3) to bytes suitable for writing to a file."""
-    return us.encode('utf-8')
+    return us.encode(unicode_encoding())
 
 def bytes2unicode(bs):
     """Convert a bytes object or a python2 string to unicode"""
-    return bs.decode('utf-8')
+    return bs.decode(unicode_encoding())
 
 def ensure_string(x):
     # strings in python2 turn up as bytes
