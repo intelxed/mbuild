@@ -2,7 +2,7 @@
 # Mark Charney 
 #BEGIN_LEGAL
 #
-#Copyright (c) 2016 Intel Corporation
+#Copyright (c) 2019 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -456,7 +456,7 @@ def hash_list(list_of_strings):
     """Compute a sha1 hash of a list of strings and return the hex digest"""
     m = hasher()
     for l in list_of_strings:
-        m.update(l.encode('utf-8'))
+        m.update(l.encode(unicode_encoding()))
     return m.hexdigest()
 
 
@@ -823,7 +823,7 @@ def run_command_output_file(cmd,
    lines = []
    cmd_args = _prepare_cmd(cmd)
    try:
-       output = io.open(output_file_name,"wt",encoding='utf-8')
+       output = io.open(output_file_name,"wt",encoding=unicode_encoding())
        input_file_obj = _cond_open_input_file(directory, input_file_name)
        sub = subprocess.Popen(cmd_args,
                               shell=use_shell,
@@ -875,8 +875,8 @@ def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
    use_shell = False
    cmd_args = _prepare_cmd(cmd)
    try:
-       fin = io.open(fn_i, 'rt', encoding='utf-8')
-       fout = io.open(fn_o, 'wt', encoding='utf-8')
+       fin = io.open(fn_i, 'rt', encoding=unicode_encoding())
+       fout = io.open(fn_o, 'wt', encoding=unicode_encoding())
        sub = subprocess.Popen(cmd_args, 
                               shell=use_shell, 
                               executable=shell_executable, 
@@ -1181,5 +1181,7 @@ def run_command_timed( cmd,
 
 def make_list_of_str(lst):
    return [ str(x) for x in lst]
-def open_readlines(fn, mode='rt',enc='utf-8'):
+def open_readlines(fn, mode='rt',enc=None):
+   if enc==None:
+       enc = unicode_encoding()
    return io.open(f,mode,encoding=enc).readlines()
