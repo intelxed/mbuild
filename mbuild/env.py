@@ -1104,11 +1104,13 @@ class env_t(object):
         return False
 
     def mac_ver(self):
+        val = [0]*3
         if self.on_mac():
-           ver = platform.mac_ver()[0]
-           (maj,min,rev) = ver.split('.')
-           return (int(maj),int(min),int(rev))
-        return None
+           version_string = platform.mac_ver()[0]
+           chunks = version_string.split('.')
+           for i,c in enumerate(chunks):
+               val[i]=int(c)
+        return tuple(val)
 
     def check_mac_ver(self, x,y,z):
         """@rtype: bool
