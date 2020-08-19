@@ -1641,12 +1641,9 @@ class env_t(object):
         self._add_default_builders()
         self._add_default_builder_templates()
 
-    def escape_string(self,s):
-        if self.on_windows():
-            return util.cond_add_quotes(s)
-        else:
-            t = s.replace(' ','\ ')
-            return t
+    def escape_string(self,s): 
+        return util.escape_string(s)
+    
     def _escape_list_of_strings(self,sl):
         n = []
         for s in sl:
