@@ -183,7 +183,7 @@ class env_t(object):
     def __getitem__(self,k):
         """Read the environment dictionary. Not doing any
         substitutions."""
-        #return self.env[k]
+
         try:
             return self.env[k]
         except:
@@ -437,7 +437,14 @@ class env_t(object):
         self.env['AS'] = ''
         self.env['RANLIB'] = ''
 
-        self.env['uname'] = platform.uname()
+        # python3.9 breaks copy.deepcopy() of platform.uname() return
+        # values so we make our own.
+        self.env['uname'] = ( platform.system(),
+                              platform.node(),
+                              platform.release(),
+                              platform.version(),
+                              platform.machine() )
+            
         self.env['hostname'] = platform.node()
         self.env['system'] = platform.system() # sort of like build_os
         
