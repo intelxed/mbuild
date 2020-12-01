@@ -236,7 +236,7 @@ class _mbuild_dep_record_t(object):
         if self.changed:
             s += "\tCHANGED\n"
         else:
-            s += "\tCHANGED\n"
+            s += "\tNOT-CHANGED\n"
         return s
     
     def dump(self):
