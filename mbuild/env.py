@@ -40,7 +40,7 @@ from . import msvs
 def _remove_libname(args,env):
     #lib = env.expand('%(LIBNAME)s')
     lib = args[0]
-    msgb("REMOVING", lib)
+    vmsgb(1, "REMOVING", lib)
     util.remove_file(lib)
     return (0,['REMOVED %s\n' % ( lib )])
 

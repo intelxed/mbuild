@@ -753,7 +753,7 @@ class work_queue_t(object):
              self.last_finished = self.finished
              self.last_running = self.running
              
-             msg(s % (self.running,
+             vmsg(1, s % (self.running,
                       self.pending,
                       self.finished,
                       self.errors,
@@ -964,7 +964,7 @@ class work_queue_t(object):
                uprint(c.dump(show_output=show_output))
             elif c.targets:
                 for x in c.targets:
-                    uprint(u'\tBUILT: {}'.format(x))
+                    vmsg(1, u'\tBUILT: {}'.format(x))
          if self._done():
             break;
       return okay

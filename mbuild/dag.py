@@ -352,8 +352,7 @@ class dag_t(object):
     def dag_write_signatures(self):
         """Write a dictionary of _mbuild_storage_object_t's to the
         given file name"""
-        if verbose(10):
-            msgb("WRITING SIGNATURES", self.signature_file_name)
+        vmsgb(10, "WRITING SIGNATURES", self.signature_file_name)
         d = {}
         for (k,v) in iter(self.recs.items()):
             # get the new hash values for anything that had a command
