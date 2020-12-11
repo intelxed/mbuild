@@ -1235,7 +1235,7 @@ class env_t(object):
             return 'x86-64'
         elif name[0:3] == 'x86':
             return 'ia32'
-        elif name == 'aarch64':
+        elif name in ['aarch64', 'arm64']:
             return 'aarch64'
         else:
             die("Unknown cpu " + name)
