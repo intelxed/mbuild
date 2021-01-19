@@ -854,7 +854,7 @@ class dag_t(object):
             # headers is all the files that fn includes directly. One
             # level scan
             headers = scanner.mbuild_scan(fn, header_paths)
-            if verbose(3):
+            if verbose(4):
                 for hr in headers:
                     if hr.system:
                         sys="System   "
@@ -880,18 +880,18 @@ class dag_t(object):
                         # we are expecting to build.
                         ah = self._find_rec_for_missing_file(hr.file_name, assumed_directory)
                         if ah:
-                            if verbose(3):
+                            if verbose(4):
                                 msgb("FOUND DEP REC FOR MISSING HEADER. WE WILL BUILD IT")
                             hr.file_name = ah.file_name
                             scanned_header = False
                         elif not self._check_required_file(hr.file_name):
-                            if verbose(3):
+                            if verbose(4):
                                 msgb("MISSING HEADER NOT REQUIRED")
                             continue
                         elif assumed_directory:
                             ofn = hr.file_name
                             hr.file_name = util.join(assumed_directory, ofn)
-                            if verbose(3):
+                            if verbose(4):
                                 msgb("ASSUMING",
                                      "%s is in %s" % (ofn, assumed_directory))
 

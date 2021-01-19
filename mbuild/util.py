@@ -62,48 +62,48 @@ def find_python(env):
     return pycmd                     
 def copy_file(src,tgt):
     """Copy src to tgt."""
-    if verbose(1):
+    if verbose(2):
         msgb("COPY", tgt + " <- " + src)
     shutil.copy(src,tgt)
 def move_file(src,tgt):
     """Move/Rename src to tgt."""
-    if verbose(1):
+    if verbose(2):
         msgb("MOVE", src + " -> " + tgt)
     shutil.move(src,tgt)
 def symlink(env,src,tgt):
     """Make a symlink from src to target. Not available on windows."""
     if env.on_windows():
         die("symlink() not available on windows")
-    if verbose(1):
+    if verbose(2):
         msgb("SYMLINK", src + " -> " + tgt)
     os.symlink(src,tgt)
 
 def copy_tree(src,tgt, ignore_patterns=None, symlinks=False):
     """Copy the tree at src to tgt. This will first remove tgt if it
     already exists."""
-    if verbose(1):
+    if verbose(2):
         msgb("COPYTREE", tgt + " <- " + src)
     if not os.path.exists(src):
         error_msg("SRC TREE DOES NOT EXIST", src)
         raise Exception
     if os.path.exists(tgt):
-        if verbose(1):
+        if verbose(2):
             msgb("Removing existing target tree", tgt)
         shutil.rmtree(tgt, ignore_errors=True)
-    if verbose(1):
+    if verbose(2):
         msgb("Copying to tree", tgt)
     if ignore_patterns:
         sp = shutil.ignore_patterns(ignore_patterns)
     else:
         sp = None
     shutil.copytree(src,tgt,ignore=sp, symlinks=symlinks)
-    if verbose(1):
+    if verbose(2):
         msgb("Done copying tree", tgt)
 
 def cmkdir(path_to_dir):
     """Make a directory if it does not exist"""
     if not os.path.exists(path_to_dir):
-        if verbose(1):
+        if verbose(2):
             msgb("MKDIR", path_to_dir)
         os.makedirs(path_to_dir)
 def list2string(ls):
@@ -125,8 +125,7 @@ def remove_file(fn, env=None, quiet=True):
        make_writable(fn)
     if os.path.exists(fn) or os.path.lexists(fn):
        if not quiet:
-           if verbose(1):
-               vmsgb(1, "REMOVING", fn)
+           vmsgb(2, "REMOVING", fn)
        os.unlink(fn)
     return (0, [])
 def remove_tree(dir_name, env=None, dangerous=False):
@@ -148,13 +147,13 @@ def remove_tree(dir_name, env=None, dangerous=False):
                 return True
         return False
     
-    vmsgb(1, "CHECKING", dir_name)
+    vmsgb(2, "CHECKING", dir_name)
     if os.path.exists(dir_name):
        if not dangerous and _important_file(dir_name):
            s = 'Did not remove directory {} because of a .svn/.git subdirectory'.format(dir_name)
            warn(s)
            return (1, [ s ])
-       vmsgb(1, "REMOVING", dir_name)
+       vmsgb(2, "REMOVING", dir_name)
        make_writable(dir_name)
        shutil.rmtree(dir_name, ignore_errors = True)
     return (0, [])
@@ -282,8 +281,7 @@ def qdip(fn):
 
 def touch(fn):
     """Open a file for append. Write nothing to it"""
-    if verbose():
-        vmsgb(1, "TOUCH", fn)
+    vmsgb(1, "TOUCH", fn)
     f=open(fn,"a")
     f.close()
 
