@@ -16,6 +16,8 @@
 #
 #END_LEGAL
 
+import os
+
 from conans import ConanFile
 
 
@@ -37,8 +39,13 @@ class MBuildConan(ConanFile):
         pass
 
     def package(self):
-        self.copy("mbuild/*", src=self.source_folder)
+        self.copy("mbuild/*", src=self.source_folder, dst="lib")
         self.copy("LICENSE", src=self.source_folder, dst="licenses")
 
     def package_info(self):
-        self.env_info.PYTHONPATH.append(self.package_folder)
+        lib_dir = os.path.join(self.package_folder, "lib")
+        self.output.info(f"Appending PYTHONPATH environment var: {lib_dir}")
+        self.env_info.PYTHONPATH.append(lib_dir)
+
+    def package_id(self):
+        self.info.header_only()
