@@ -258,7 +258,7 @@ def find_ms_toolchain(env):
     if env['toolchain'] == '':
         if incoming_setup: 
             # relying on user-setup env (say MSVS cmd.exe or vcvars-equiv bat file)
-            if os.environ['VisualStudioVersion']  in ['15.0','16.0']:
+            if os.environ['VisualStudioVersion']  in ['15.0','16.0','17.0']:
                 env['msvs_version'] = str(int(float(os.environ['VisualStudioVersion'])))
                 msvs.set_msvc_compilers(env, os.environ['VCToolsInstallDir'])
         if env['compiler']=='ms':
