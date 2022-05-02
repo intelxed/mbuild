@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- python -*-
-# Mark Charney 
 #BEGIN_LEGAL
 #
-#Copyright (c) 2019 Intel Corporation
+#Copyright (c) 2022 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -708,7 +707,7 @@ class env_t(object):
             action='store',
             help="MSVS version 6=VC98, 7=VS .Net 2003, 8=VS 2005, " + 
             "9=VS2008, 10=VS 2010/DEV10, 11=VS2012/DEV11, 12=VS2013, " +
-            "14=VS2015, 15=VS2017, 16=VS2019. " +
+            "14=VS2015, 15=VS2017, 16=VS2019, 17=VS2022. " +
             "This sets certain flags and idioms for quirks in some compilers.")
         self.parser.add_option(
             '--setup-msvc',
