@@ -41,5 +41,7 @@ jobs:
           python -m pip install .
     - name: test
       run: |
+          python tests/1.py
           python tests/2.py
+          python tests/3.py
          

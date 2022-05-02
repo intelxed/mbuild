@@ -1,6 +1,6 @@
 #BEGIN_LEGAL
 #
-#Copyright (c) 2021 Intel Corporation
+#Copyright (c) 2022 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ from conans import ConanFile
 class MBuildConan(ConanFile):
     name = "mbuild"
     description = "A simple portable dependence-based build-system written in Python."
-    url = "https://gitlab.devtools.intel.com/xed-group/xed"
+    url = "https://github.com/intelxed/mbuild.git"
     homepage = "https://intelxed.github.io/"
     license = "Apache License 2.0"
     topics = ("intel", "mbuild", "build")
