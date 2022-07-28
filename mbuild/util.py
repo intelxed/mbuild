@@ -922,7 +922,7 @@ def get_gcc_version(gcc):
         return 'unknown'
 
 def get_clang_version(full_path):
-    cmd = full_path + " -dM -E - "
+    cmd = full_path + " -dM -E -x c "
     try:
         (retcode, stdout, stderr) = run_command(cmd,
                                                 input_file_name="/dev/null")
@@ -941,7 +941,18 @@ def get_clang_version(full_path):
             version = "{}.{}.{}".format(major,minor,patchlevel)
             return version
     except:
-        return 'unknown'
+        pass
+    # Try the --version knob
+    try:
+        (retcode, stdout, stderr) = run_command(f'{full_path} --version')
+        if retcode == 0:
+            for line in stdout:
+                r = re.search('version[ ]+(?P<version>(\d+\.)+\d+)', line.lower())
+                if r:
+                    return r.group('version')
+    except:
+        pass
+    return 'unknown'
 
 # unify names for clang/gcc version checkers
 def compute_clang_version(full_path):
