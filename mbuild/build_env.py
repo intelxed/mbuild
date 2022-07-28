@@ -145,7 +145,7 @@ def set_env_gnu(env):
         env['ARCHIVER'] = ( 'compiler', { 'gnu': 'ar',    # or GAR??
                                           'icc' : 'xiar',
                                           'iclang' : 'xiar',
-                                          'clang':'ar' })
+                                          'clang':'llvm-ar' })
     if env['RANLIB_CMD'] == '':
         env['RANLIB_CMD'] = 'ranlib'
 
