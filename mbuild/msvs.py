@@ -691,13 +691,13 @@ def set_msvc_compilers(env,msvc_tools_root):
     env['msvc_compilers']['x86-64']['x86-64'] = x64_to_x64
 
 def _set_msvs_dev17(env, x64_host, x64_target, regv=None): # msvs 2022
-    versions = ['Enterprise', 'Professional', 'Community']
+    versions = ['Enterprise', 'Professional', 'Community', 'BuildTools']
     
     progfi = 'C:/Program Files (x86)'
     if regv:
         prefix = regv
     else:
-        prefix = 'C:/Program Files/Microsoft Visual Studio/2022'
+        prefix = 'C:/Program Files (x86)/Microsoft Visual Studio/2022'
 
     if x64_target:
         tgt = 'x64'
