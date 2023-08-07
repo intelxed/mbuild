@@ -183,6 +183,7 @@ _on_cygwin = False
 _on_linux  = False
 _on_freebsd = False
 _on_netbsd = False
+_on_openbsd = False
 _operating_system_name = platform.system()
 if _operating_system_name.find('CYGWIN') != -1:
    _on_cygwin = True
@@ -198,6 +199,8 @@ elif _operating_system_name == 'NetBSD':
    _on_netbsd = True
 elif _operating_system_name == 'Darwin':
    _on_mac = True
+elif _operating_system_name == 'OpenBSD':
+   _on_openbsd = True
 else:
    die("Could not detect operating system type: " + _operating_system_name)
 

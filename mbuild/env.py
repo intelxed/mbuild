@@ -489,9 +489,9 @@ class env_t(object):
         #host_cpu. We do a little magic later to try to make those old
         #uses continue to work.
         self.env['target_cpu']=None
-        
-        if self.env['system'] in [ 'Linux', 'FreeBSD', 'NetBSD']:
-            uname = platform.uname() 
+
+        if self.env['system'] in [ 'Linux', 'FreeBSD', 'NetBSD', 'OpenBSD']:
+            uname = platform.uname()
             self.env['build_os']  = self._normalize_os_name(uname[0])
 
             self.env['build_cpu'] = \
@@ -819,7 +819,7 @@ class env_t(object):
             else:
                 nsv = self._check_number_of_processors_windows()
             n = int(nsv)
-        elif self.on_freebsd():
+        elif self.on_freebsd() or self.on_openbsd():
             getconf = "/usr/bin/getconf"
             if os.path.exists(getconf):
                 cmd = "%s NPROCESSORS_ONLN" % (getconf)  # or NPROCESSORS_CONF
@@ -1152,6 +1152,13 @@ class env_t(object):
             return True
         return False
 
+    def on_openbsd(self):
+        """@rtype: bool
+           @return:  True iff on openbsd"""
+        if self.env['system'] == 'OpenBSD':
+            return True
+        return False
+
     def on_netbsd(self):
         """@rtype: bool
            @return:  True iff on netbsd"""
@@ -1247,7 +1254,7 @@ class env_t(object):
             return 'lin'
         elif name in ['mac', 'Darwin']:
             return 'mac'
-        elif name in ['bsd', 'FreeBSD', 'NetBSD']:
+        elif name in ['bsd', 'FreeBSD', 'NetBSD', 'OpenBSD']:
             return 'bsd'
         elif name[0:6] == 'CYGWIN':
             return 'win'
@@ -1263,7 +1270,7 @@ class env_t(object):
         """
         if self.on_windows():
             return "ms"
-        if self.on_mac():
+        if self.on_mac() or self.on_openbsd():
             return "clang"
         return "gnu"
 
@@ -1363,7 +1370,7 @@ class env_t(object):
 
     def path_search(self,exe):
         path = os.environ['PATH']
-        if self.on_freebsd() or self.on_linux() or self.on_cygwin() or self.on_netbsd():
+        if self.on_freebsd() or self.on_linux() or self.on_cygwin() or self.on_netbsd() or self.on_openbsd():
             sep = ':'
         else:
             sep = ';'
