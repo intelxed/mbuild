@@ -1,5 +1,5 @@
 on: pull_request
-
+permissions: read-all
 jobs:
   linux:
     runs-on: ubuntu-20.04
