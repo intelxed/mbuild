@@ -20,11 +20,8 @@
 """Basic useful utilities: file copying, removal, permissions,
 path-name manipulation, and command execution."""
 
-import os
 import re
-import glob
 import io # for io.open
-import sys
 import shutil
 import stat
 import types
@@ -32,7 +29,6 @@ import time
 import subprocess
 import tempfile
 import shlex
-import traceback
 try:
     import cPickle as apickle
 except:
@@ -41,63 +37,11 @@ except:
 from .base import *
 
 
-def find_python(env):
-    """return path to NON cygwin"""
-    pycmd = sys.executable # use whatever the user invoked us with
-    if env.on_windows() and env.on_cygwin():
-      # avoid cygwin python
-      if pycmd in ['/usr/bin/python', '/bin/python']:
-          python_commands = [ 'c:/python27/python.exe',
-                              'c:/python26/python.exe',
-                              'c:/python25/python.exe' ]
-          pycmd  = None
-          for p in python_commands:
-              if os.path.exists(p):
-                  return p
-          if not pycmd:
-              die("Could not find win32 python at these locations: %s" %
-                         "\n\t" + "\n\t".join(python_commands))
-    
-    return pycmd                     
 def copy_file(src,tgt):
     """Copy src to tgt."""
     if verbose(2):
         msgb("COPY", tgt + " <- " + src)
     shutil.copy(src,tgt)
-def move_file(src,tgt):
-    """Move/Rename src to tgt."""
-    if verbose(2):
-        msgb("MOVE", src + " -> " + tgt)
-    shutil.move(src,tgt)
-def symlink(env,src,tgt):
-    """Make a symlink from src to target. Not available on windows."""
-    if env.on_windows():
-        die("symlink() not available on windows")
-    if verbose(2):
-        msgb("SYMLINK", src + " -> " + tgt)
-    os.symlink(src,tgt)
-
-def copy_tree(src,tgt, ignore_patterns=None, symlinks=False):
-    """Copy the tree at src to tgt. This will first remove tgt if it
-    already exists."""
-    if verbose(2):
-        msgb("COPYTREE", tgt + " <- " + src)
-    if not os.path.exists(src):
-        error_msg("SRC TREE DOES NOT EXIST", src)
-        raise Exception
-    if os.path.exists(tgt):
-        if verbose(2):
-            msgb("Removing existing target tree", tgt)
-        shutil.rmtree(tgt, ignore_errors=True)
-    if verbose(2):
-        msgb("Copying to tree", tgt)
-    if ignore_patterns:
-        sp = shutil.ignore_patterns(ignore_patterns)
-    else:
-        sp = None
-    shutil.copytree(src,tgt,ignore=sp, symlinks=symlinks)
-    if verbose(2):
-        msgb("Done copying tree", tgt)
 
 def cmkdir(path_to_dir):
     """Make a directory if it does not exist"""
@@ -105,10 +49,6 @@ def cmkdir(path_to_dir):
         if verbose(2):
             msgb("MKDIR", path_to_dir)
         os.makedirs(path_to_dir)
-def list2string(ls):
-    """Print a list as a string"""
-    s = " ".join(ls)
-    return s
 
 def util_add_to_list(olst, v):
     """Add v to olst. v can be a list or a non-list object. If v is a
@@ -156,29 +96,6 @@ def remove_tree(dir_name, env=None, dangerous=False):
        make_writable(dir_name)
        shutil.rmtree(dir_name, ignore_errors = True)
     return (0, [])
-def remove_files(lst, env=None):
-    """Remove all the files in the list of files, lst. The env
-    parameter is not used"""
-    for fn in lst:
-        remove_file(fn)
-    return (0, [])
-
-def remove_files_glob(lst,env=None):
-    """Remove all files in the list of wild card expressions. The env
-    parameter is not used"""
-    for fn_glob in lst:
-        #msgb("REMOVING", fn_glob)
-        for file_name in glob(fn_glob):
-            remove_file(file_name)
-    return (0, [])
-
-def remove_files_from_tree(dir, file_patterns):
-    """Remove files that match the re object compiled pattern provided"""
-    for (dir, subdirs, subfiles) in  os.walk(dir):
-        for file_name  in subfiles:
-            fn = os.path.join(dir,file_name)
-            if file_patterns.search(fn):
-                remove_file(fn)
 
 
 _readable_by_all   =  stat.S_IRUSR|stat.S_IRGRP|stat.S_IROTH
@@ -194,13 +111,6 @@ def make_writable(fn):
     global _rwx_by_me
     os.chmod(fn, _rwx_by_me)
 
-def make_executable(fn):
-    """Make the file or directory readable & executable by user/group, writable by user"""
-    global _executable_by_ug
-    global _readable_by_ug
-    global _writeable_by_me
-    os.chmod(fn, _readable_by_ug|_writeable_by_me|_executable_by_ug)
-
 def modify_dir_tree(path, dir_fn=None, file_fn=None):
     """Walk the tree rooted at path and apply the function dir_fn to
     directories and file_fn to files. This is intended for doing
@@ -214,13 +124,12 @@ def modify_dir_tree(path, dir_fn=None, file_fn=None):
         if file_fn:
             for file_name  in subfiles:
                 file_fn(os.path.join(dir,file_name))
-    
 
 def make_read_only(fn):
     """Make the file fn read-only"""
     global _readable_by_all
     os.chmod(fn, _readable_by_all)
-    
+
 def make_web_accessible(fn):
     """Make the file readable by all and writable by the current owner"""
     global _readable_by_all
@@ -237,14 +146,6 @@ def make_web_accessible_dir(dir):
     if verbose(8):
         msgb("make_web_accessible_dir", dir)
     os.chmod(dir, _writeable_by_me|_readable_by_all|_executable_by_all)
-
-def make_documentation_tree_accessible(dir):
-    """Make the directory teree rooted at dir web-accessible. That is,
-    the directories are readable and executable by anyone and the
-    files are readable by anyone."""
-    msgb("CHMOD TREE", dir)
-    modify_dir_tree(dir, make_web_accessible_dir, make_web_accessible)
-
 
     
 def prefix_files(dir,input_files):
@@ -271,12 +172,6 @@ def quote(fn):
     """Add quotes around the file nameed fn. Return a string"""
     return "\"%s\"" % fn
 
-def qdip(fn):
-    """Add quotes to a string if there are spaces in the name"""
-    if re.search(' ',fn):
-        return '"%s"' % fn
-    return fn
-
 
 def touch(fn):
     """Open a file for append. Write nothing to it"""
@@ -289,26 +184,6 @@ if on_native_windows():
     _mysep = "\\"
 else:
     _mysep = "/"
-
-def myjoin( *args ):
-   """join all the args supplied as arguments using _mysep as the
-   separator. _mysep is a backslash on native windows and a forward
-   slash everywhere else.
-   @type args: strings
-   @param args: path component strings
-
-   @rtype: string
-   @return: string with _mysep slashes
-   """
-   s = ''
-   first = True
-   for a in args:
-      if first:
-         first = False
-      else:
-         s = s + _mysep
-      s = s + a
-   return s
 
 def strip_quotes(a):
    """Conditionally remove leading/trailing quotes from a string
@@ -424,21 +299,7 @@ def cond_add_quotes(s):
    return s
     
 def escape_string(s):
-    return cond_add_quotes(s)    
-
-def escape_special_characters(s):
-    """Add a backslash before characters that have special meanings in
-    regular expressions. Python does not handle backslashes in regular
-    expressions or substitution text so they must be escaped before
-    processing.""" 
-
-    special_chars = r'\\'
-    new_string = ''
-    for c in s:
-        if c in special_chars:
-            new_string += '\\'
-        new_string += c
-    return new_string
+    return cond_add_quotes(s)
         
 ###############################################################
 
@@ -569,29 +430,6 @@ def get_elapsed_time(start_time, end_time=None):
       timestr = "%.d:%02d" % (minutes,remainder_seconds)
       suffix = " min:sec"
    return  "".join([negative_prefix, timestr, suffix])
- 
-def print_elapsed_time(start_time, end_time=None, prefix=None, current=False):
-   """print the elapsed time in seconds or minutes.
-   
-   @type  start_time: float
-   @param start_time: the starting time
-   @type  end_time: float
-   @param end_time: the ending time (optional)
-   @type  prefix: string
-   @param prefix: a string to print at the start of the line (optional)
-   """
-   if end_time == None:
-      end_time = get_time()
-   ets = "ELAPSED TIME"
-   if prefix:
-       s = "%s %s" % (prefix, ets)
-   else:
-       s = ets
-
-   t = get_elapsed_time(start_time, end_time)
-   if current:
-       t = t + "  / NOW: " + get_time_str()
-   vmsgb(1,s,t)
 
 
 ###############################################################
@@ -850,66 +688,6 @@ def run_command_output_file(cmd,
        print("Unxpected error:", sys.exc_info()[0])
        raise
 
-def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
-   """
-      Run a command string using the subprocess module. Read standard
-      input from fn_i and write stdout/stderr to fn_o.
-      
-      @type  cmd: string
-      @param cmd: command line to execut with all args.
-      @type  fn_i: string
-      @param fn_i: input file name
-      @type  fn_o: string
-      @param fn_o: output file name
-      @type  shell_executable: string
-      @param shell_executable:  the shell executable
-      @type  directory: string
-      @param directory: a directory to change to before running the command.
-
-      @rtype: integer
-      @return: return code
-      """
-   use_shell = False
-   cmd_args = _prepare_cmd(cmd)
-   try:
-       fin = io.open(fn_i, 'rt', encoding=unicode_encoding())
-       fout = io.open(fn_o, 'wt', encoding=unicode_encoding())
-       sub = subprocess.Popen(cmd_args, 
-                              shell=use_shell, 
-                              executable=shell_executable, 
-                              stdin=fin, 
-                              stdout=fout, 
-                              stderr=subprocess.STDOUT,
-                              universal_newlines=True,
-                              cwd=directory)
-       retval = sub.wait()
-       fin.close()
-       fout.close()
-       return retval
-   except OSError as e:
-       die(u"Execution failed for cmd %s\nResult is %s\n" % (cmd,str(e)))
-
-def find_dir(d):
-    """Look upwards for a particular filesystem directory d as a
-    subdirectory of one of the ancestors. Return None on failure"""
-    dir = os.getcwd()
-    last = ''
-    while dir != last:
-        target_dir = os.path.join(dir,d)
-        if os.path.exists(target_dir):
-            return target_dir
-        last = dir
-        (dir,tail) = os.path.split(dir)
-    return None
-
-def peel_dir(s,n):
-    """Remove n trailing path components from s by calling
-    os.path.dirname()"""
-    t = s
-    for i in range(0,n):
-        t = os.path.dirname(t)
-    return t
-
 def get_gcc_version(gcc):
     """Return the compressed version number of gcc"""
     cmd = gcc + " -dumpversion"
@@ -954,34 +732,6 @@ def get_clang_version(full_path):
         pass
     return 'unknown'
 
-# unify names for clang/gcc version checkers
-def compute_clang_version(full_path):
-    return get_clang_version(full_path)
-
-def compute_gcc_version(full_path):
-    return get_gcc_version(full_path)
-
-def gcc_version_test(major,minor,rev,gstr):
-    """Return True if the specified gcc version string (gstr) is at or
-    after the specified major,minor,revision args"""
-
-    n = gstr.split('.')
-    if len(n) not in [2,3]:
-        die("Cannot compute gcc version from input string: [%s]" % (gstr))
-    ga = int(n[0])
-    gb = int(n[1])
-    if len(n) == 2:
-        gc = 0
-    else:
-        gc = int(n[2])
-
-    if ga > major:
-        return True
-    if ga == major and gb > minor:
-        return True
-    if ga == major and gb == minor and gc >= rev:
-        return True
-    return False
 
 import threading
 # requires Python2.6 or later
@@ -1185,11 +935,3 @@ def run_command_timed( cmd,
                                                  tc.exception_trace))
 
     return (exit_code, output, stderr)
-
-
-def make_list_of_str(lst):
-   return [ str(x) for x in lst]
-def open_readlines(fn, mode='rt',enc=None):
-   if enc==None:
-       enc = unicode_encoding()
-   return io.open(f,mode,encoding=enc).readlines()
