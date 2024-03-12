@@ -877,6 +877,9 @@ class env_t(object):
         if targets is None:
             targets = []
 
+        if 'targets' in self.env:
+            targets.extend(self.env['targets'])
+
         # split up the targets list so we can extract the command line
         # variable bindings
         just_targets = []
@@ -897,6 +900,7 @@ class env_t(object):
                                   ap.group('value'), 'plusequals') )
                 continue
             just_targets.append(t)
+        self.env['targets'] = just_targets
 
         # add command line variable bindings to the environment
         for (var,value, how) in bindings:
