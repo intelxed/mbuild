@@ -893,11 +893,11 @@ class env_t(object):
                                   ap.group('value'), 'equals' ))
                 continue
             sp = env_t.supplement_pattern.match(t)
-            if ap:
+            if sp:
                 msgb("BINDING", "%s --> [%s]" % 
-                     (ap.group('name'), ap.group('value')))
-                bindings.append( (ap.group('name'), 
-                                  ap.group('value'), 'plusequals') )
+                     (sp.group('name'), sp.group('value')))
+                bindings.append( (sp.group('name'),
+                                  sp.group('value'), 'plusequals') )
                 continue
             just_targets.append(t)
         self.env['targets'] = just_targets
