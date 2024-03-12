@@ -49,9 +49,9 @@ def compile_and_link(env,fn):
     
 def work():
     env = mbuild.env_t()
-    env.parser.add_option("--build", 
-                          dest="build", action="store_true", default=False,
-                          help="Build tests")
+    env.parser.add_argument("--build",
+                            dest="build", action="store_true", default=False,
+                            help="Build tests")
 
     env.parse_args()
     env.work_queue = mbuild.work_queue_t(env['jobs'])

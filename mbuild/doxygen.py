@@ -33,6 +33,7 @@ import types
 try:
    from . import base
    from . import dag
+   from .env import env_t
    from . import util
    from . import plan
 except:
@@ -306,32 +307,32 @@ def doxygen_env(env):
                                doxygen_cmd='' )
    env.update_dict(doxygen_defaults)
    
-def doxygen_args(env):
+def doxygen_args(env: env_t):
    """Add the knobs to the command line knobs parser"""
     
-   env.parser.add_option("--doxygen-install",
-                         dest="doxygen_install",
-                         action="store",
-                         default='',
-                         help="Doxygen installation directory")
+   env.parser.add_argument("--doxygen-install",
+                           dest="doxygen_install",
+                           action="store",
+                           default='',
+                           help="Doxygen installation directory")
    
-   env.parser.add_option("--doxygen-config",
-                         dest="doxygen_config",
-                         action="store",
-                         default='',
-                         help="Doxygen config file")
+   env.parser.add_argument("--doxygen-config",
+                           dest="doxygen_config",
+                           action="store",
+                           default='',
+                           help="Doxygen config file")
    
-   env.parser.add_option("--doxygen-top-src",
-                         dest="doxygen_top_src",
-                         action="store",
-                         default='',
-                         help="Doxygen top source file")
+   env.parser.add_argument("--doxygen-top-src",
+                           dest="doxygen_top_src",
+                           action="store",
+                           default='',
+                           help="Doxygen top source file")
    
-   env.parser.add_option("--doxygen-cmd",
-                         dest="doxygen_cmd",
-                         action="store",
-                         default='',
-                         help="Doxygen command name")
+   env.parser.add_argument("--doxygen-cmd",
+                           dest="doxygen_cmd",
+                           action="store",
+                           default='',
+                           help="Doxygen command name")
    
    
 def doxygen_run(env, inputs, subs, work_queue, hash_file_name='dox'):
