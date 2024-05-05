@@ -2,7 +2,7 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2022 Intel Corporation
+#Copyright (c) 2024 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ class env_t(object):
              - separate_pdb_files       defaultE{:} False
              - targets     defaultE{:} []  targets to build
              - verbose     defaultE{:} 1
-             - compiler    defaultE{:} 'gnu', 'ms', 'clang', 'icc', 'icl', 'iclang'
+             - compiler    defaultE{:} 'gnu', 'ms', 'clang', 'icc', 'icl', 'iclang', 'icx'
              - extra_defines   defaultE{:} '' 
              - extra_flags     defaultE{:} ''  (for both CXXFLAGS & CCFLAGS)
              - extra_cxxflags  defaultE{:} ''
@@ -296,7 +296,7 @@ class env_t(object):
             t = self._mysub(t,name,v)
             m = subs_pattern.search(t)
             if debug:
-                uprint(t)
+                print(t)
         return t
     
     def _dosub_old(self,s,d):
@@ -628,7 +628,7 @@ class env_t(object):
             "--compiler",
             dest="compiler",
             action="store",
-            help="Compiler (ms,gnu,clang,icc,icl,iclang)." +
+            help="Compiler (ms,gnu,clang,icc,icl,iclang, icx)." +
                  " Default is gnu on linux and" + 
                  " ms on windows. Default is: %s" % (self.default_compiler()))
         self.parser.add_option(
@@ -1275,7 +1275,7 @@ class env_t(object):
 
         @type compiler_family: string
         @param compiler_family: an override for the default 
-                       compiler family (gnu, ms, clang, icl, icc, iclang)
+                       compiler family (gnu, ms, clang, icl, icc, iclang, icx)
         """
 
 
@@ -1312,6 +1312,8 @@ class env_t(object):
             build_env.set_env_iclang(self)
         elif compiler_family == 'icl':
             build_env.set_env_icl(self)
+        elif compiler_family == 'icx':
+            build_env.set_env_icx(self)
         else:
             die("Compiler family not recognized. Need gnu or ms")
 
@@ -2039,7 +2041,7 @@ class env_t(object):
     def _dynamic_lib_default(self, objs, libname, relocate=False):
         """Make a dynamic library libname from objs. If relocate is True,
         then prefix libname with the build directory name"""
-        if self.env['compiler'] in [ 'gnu','icc','clang','iclang']:
+        if self.env['compiler'] in [ 'gnu','icc','clang','iclang','icx']:
             cmd = self.env['CXX_SHARED_LIB_COMMAND']
         else:
             cmd = self.env['DYNAMIC_LIB_COMMAND']

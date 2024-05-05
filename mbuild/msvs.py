@@ -1,7 +1,7 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2022 Intel Corporation
+#Copyright (c) 2024 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ def add_env(v,s):
             tag = u"GOOD"
         else:
             tag = u"BAD"
-        uprint(u"{} {}".format(tag,s))
+        print(u"{} {}".format(tag,s))
     v.insert(0,s)
 ########################################################################
 

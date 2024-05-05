@@ -1,6 +1,6 @@
 #BEGIN_LEGAL
 #
-#Copyright (c) 2022 Intel Corporation
+#Copyright (c) 2024 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -112,7 +112,6 @@ from .util import *
 from .plan import *
 from .arar import *
 from .doxygen import doxygen_run, doxygen_args, doxygen_env
-from .header_tag import *
 
 __all__ = [ 'base',
             'dag',
@@ -123,8 +122,7 @@ __all__ = [ 'base',
             'msvs',
             'arar',
             'doxygen',
-            'dfs',
-            'header_tag' ]
+            'dfs']
 
 
 import time

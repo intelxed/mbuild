@@ -1,7 +1,7 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2022 Intel Corporation
+#Copyright (c) 2024 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -487,7 +487,7 @@ class command_t(object):
                break;
          except Exception as e:
             self.exit_status = 1
-            self._extend_stderr(u"Execution error for: %s\n%s" % (ustr(e), self.dump()))
+            self._extend_stderr(u"Execution error for: %s\n%s" % (str(e), self.dump()))
             break
 
       self.end_time = get_time()
@@ -892,7 +892,7 @@ class work_queue_t(object):
             # some stuff did not build, force an error status return
             msgb("ERROR: DID NOT BUILD SOME STUFF", "\n\t".join(did_not_build))
             if self.dag:
-                  uprint(self.dag.dump())
+                  print(self.dag.dump())
             self.end_time = get_time()
             self._cleanup()
             return False
@@ -960,7 +960,7 @@ class work_queue_t(object):
                   self.add(x.creator)
          if c:
             if self.show_errors_only==False or c.failed():
-               uprint(c.dump(show_output=show_output))
+               print(c.dump(show_output=show_output))
             elif c.targets:
                 for x in c.targets:
                     vmsg(1, u'\tBUILT: {}'.format(x))
@@ -1009,7 +1009,7 @@ class work_queue_t(object):
                      for x in self.dag._enable_successors(c):
                         self.add(x.creator)
                if self.show_errors_only==False or c.failed():
-                  uprint(c.dump(show_output=show_output))
+                  print(c.dump(show_output=show_output))
                self._status()
          if self._done():
             break;

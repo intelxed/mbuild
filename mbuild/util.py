@@ -1,20 +1,20 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2022 Intel Corporation
+#Copyright (c) 2024 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#        http://www.apache.org/licenses/LICENSE-2.0
 #
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-#  
+#
 #END_LEGAL
 
 """Basic useful utilities: file copying, removal, permissions,
@@ -34,9 +34,9 @@ import tempfile
 import shlex
 import traceback
 try:
-    import cPickle as apickle
+     import cPickle as apickle
 except:
-    import pickle as apickle
+     import pickle as apickle
 
 from .base import *
 
@@ -145,7 +145,7 @@ def remove_tree(dir_name, env=None, dangerous=False):
             if os.path.exists(os.path.join(dir_name, idir)):
                 return True
         return False
-    
+
     vmsgb(2, "CHECKING", dir_name)
     if os.path.exists(dir_name):
        if not dangerous and _important_file(dir_name):
@@ -214,13 +214,13 @@ def modify_dir_tree(path, dir_fn=None, file_fn=None):
         if file_fn:
             for file_name  in subfiles:
                 file_fn(os.path.join(dir,file_name))
-    
+
 
 def make_read_only(fn):
     """Make the file fn read-only"""
     global _readable_by_all
     os.chmod(fn, _readable_by_all)
-    
+
 def make_web_accessible(fn):
     """Make the file readable by all and writable by the current owner"""
     global _readable_by_all
@@ -246,7 +246,7 @@ def make_documentation_tree_accessible(dir):
     modify_dir_tree(dir, make_web_accessible_dir, make_web_accessible)
 
 
-    
+
 def prefix_files(dir,input_files):
     """Add dir on to the front of the input file or files. Works with
     strings or lists of strings.
@@ -291,92 +291,92 @@ else:
     _mysep = "/"
 
 def myjoin( *args ):
-   """join all the args supplied as arguments using _mysep as the
-   separator. _mysep is a backslash on native windows and a forward
-   slash everywhere else.
-   @type args: strings
-   @param args: path component strings
+    """join all the args supplied as arguments using _mysep as the
+    separator. _mysep is a backslash on native windows and a forward
+    slash everywhere else.
+    @type args: strings
+    @param args: path component strings
 
-   @rtype: string
-   @return: string with _mysep slashes
-   """
-   s = ''
-   first = True
-   for a in args:
-      if first:
-         first = False
-      else:
-         s = s + _mysep
-      s = s + a
-   return s
+    @rtype: string
+    @return: string with _mysep slashes
+    """
+    s = ''
+    first = True
+    for a in args:
+        if first:
+            first = False
+        else:
+            s = s + _mysep
+        s = s + a
+    return s
 
 def strip_quotes(a):
-   """Conditionally remove leading/trailing quotes from a string
-   @type a: string
-   @param a: a string potentially with quotes
+    """Conditionally remove leading/trailing quotes from a string
+    @type a: string
+    @param a: a string potentially with quotes
 
-   @rtype: string
-   @return: same string without the leading and trailing quotes
-   """
-   ln = len(a)
-   if ln >= 2:
-      strip_quotes = False
-      if a[0] == '"' and a[-1] == '"':
-         strip_quotes=True
-      elif a[0] == "'" and a[-1] == "'":
-         strip_quotes=True
-      if strip_quotes:
-         b = a[1:ln-1]
-         return b
-   return a
+    @rtype: string
+    @return: same string without the leading and trailing quotes
+    """
+    ln = len(a)
+    if ln >= 2:
+        strip_quotes = False
+        if a[0] == '"' and a[-1] == '"':
+            strip_quotes=True
+        elif a[0] == "'" and a[-1] == "'":
+            strip_quotes=True
+        if strip_quotes:
+            b = a[1:ln-1]
+            return b
+    return a
 
 def join( *args ):
-   """join all the args supplied as arguments using a forward slash as
-   the separator
-   
-   @type args: strings
-   @param args: path component strings
+    """join all the args supplied as arguments using a forward slash as
+    the separator
 
-   @rtype: string
-   @return: string with forward-slashes
-   """
-   s = ''
-   first = True
-   for a in args:
-      ln = len(s)
-      if first:
-         first = False
-      elif ln == 0 or  s[-1] != '/':
-          # if the last character is not a fwd slash already, add a slash
-          s = s + '/'
-      a = strip_quotes(a)
-      s = s + a
-   return s
+    @type args: strings
+    @param args: path component strings
+
+    @rtype: string
+    @return: string with forward-slashes
+    """
+    s = ''
+    first = True
+    for a in args:
+        ln = len(s)
+        if first:
+            first = False
+        elif ln == 0 or  s[-1] != '/':
+             # if the last character is not a fwd slash already, add a slash
+             s = s + '/'
+        a = strip_quotes(a)
+        s = s + a
+    return s
 
 
 def flip_slashes(s):
-   """convert to backslashes to _mysep slashes. _mysep slashes are
-   defined to be backslashes on native windows and forward slashes
-   everywhere else.
-   @type s: string or list of strings
-   @param s: path name(s)
-   
-   @rtype: string or list of strings
-   @return: string(s) with _mysep slashes
-   """
+    """convert to backslashes to _mysep slashes. _mysep slashes are
+    defined to be backslashes on native windows and forward slashes
+    everywhere else.
+    @type s: string or list of strings
+    @param s: path name(s)
+    
+    @rtype: string or list of strings
+    @return: string(s) with _mysep slashes
+    """
 
-   if on_native_windows():
-      return s
-   if isinstance(s, list):
-       return  list(map(flip_slashes, s))
-   t = re.sub(r'\\',_mysep,s,0) # replace all
-   return t
+    if on_native_windows():
+        return s
+    if isinstance(s, list):
+         return  list(map(flip_slashes, s))
+    t = re.sub(r'\\',_mysep,s,0) # replace all
+    return t
 
 def posix_slashes(s):
    """convert to posix slashes. Do not flip slashes immediately before spaces
    @type s: string  or list of strings
    @param s: path name(s)
-   
+
    @rtype: string or list of strings
    @return: string(s) with forward slashes
    """
@@ -390,7 +390,7 @@ def posix_slashes(s):
        if a == '\\':
            if i == last:
                x = '/'
-           elif s[i+1] != ' ': 
+           elif s[i+1] != ' ':
                x = '/'
        t.append(x)
    return ''.join(t)
@@ -414,7 +414,7 @@ def cond_add_quotes(s):
 
    @type s: string
    @param s: path name
-   
+
    @rtype: string
    @return: string with quotes, if necessary
    """
@@ -422,15 +422,15 @@ def cond_add_quotes(s):
                                     re.search(r"['].*[']",s) ):
       return '\"' + s + '\"'
    return s
-    
+
 def escape_string(s):
-    return cond_add_quotes(s)    
+    return cond_add_quotes(s)
 
 def escape_special_characters(s):
     """Add a backslash before characters that have special meanings in
     regular expressions. Python does not handle backslashes in regular
     expressions or substitution text so they must be escaped before
-    processing.""" 
+    processing."""
 
     special_chars = r'\\'
     new_string = ''
@@ -503,7 +503,7 @@ def hash_files(list_of_files, fn):
     for f in list_of_files:
         d[f] = hash_file(f)
     write_signatures(fn,d)
-    
+
 def file_hashes_are_valid(list_of_files, fn):
     """Return true iff the old hashes in the file fn are valid for all
     of the specified list of files."""
@@ -533,12 +533,12 @@ def get_time_str():
    """
    # include time zone
    return time.strftime('%Y-%m-%d %H:%M:%S %Z')
-  
+
 def get_time():
-   """@rtype: float
-      @returns: current time as float
-   """
-   return time.time()
+    """@rtype: float
+        @returns: current time as float
+    """
+    return time.time()
 
 def get_elapsed_time(start_time, end_time=None):
    """compute the elapsed time in seconds or minutes
@@ -569,29 +569,29 @@ def get_elapsed_time(start_time, end_time=None):
       timestr = "%.d:%02d" % (minutes,remainder_seconds)
       suffix = " min:sec"
    return  "".join([negative_prefix, timestr, suffix])
- 
-def print_elapsed_time(start_time, end_time=None, prefix=None, current=False):
-   """print the elapsed time in seconds or minutes.
-   
-   @type  start_time: float
-   @param start_time: the starting time
-   @type  end_time: float
-   @param end_time: the ending time (optional)
-   @type  prefix: string
-   @param prefix: a string to print at the start of the line (optional)
-   """
-   if end_time == None:
-      end_time = get_time()
-   ets = "ELAPSED TIME"
-   if prefix:
-       s = "%s %s" % (prefix, ets)
-   else:
-       s = ets
 
-   t = get_elapsed_time(start_time, end_time)
-   if current:
-       t = t + "  / NOW: " + get_time_str()
-   vmsgb(1,s,t)
+def print_elapsed_time(start_time, end_time=None, prefix=None, current=False):
+    """print the elapsed time in seconds or minutes.
+
+    @type  start_time: float
+    @param start_time: the starting time
+    @type  end_time: float
+    @param end_time: the ending time (optional)
+    @type  prefix: string
+    @param prefix: a string to print at the start of the line (optional)
+    """
+    if end_time == None:
+       end_time = get_time()
+    ets = "ELAPSED TIME"
+    if prefix:
+        s = "%s %s" % (prefix, ets)
+    else:
+        s = ets
+
+    t = get_elapsed_time(start_time, end_time)
+    if current:
+        t = t + "  / NOW: " + get_time_str()
+    vmsgb(1,s,t)
 
 
 ###############################################################
@@ -630,16 +630,16 @@ def _cond_open_input_file(directory,input_file_name):
         return input_file_obj
     return None
 
-def run_command(cmd, 
-                separate_stderr=False, 
+def run_command(cmd,
+                separate_stderr=False,
                 shell_executable=None,
                 directory=None,
                 osenv=None,
                 input_file_name=None,
                 **kwargs):
-   """
+    """
       Run a command string using the subprocess module.
-      
+
       @type  cmd: string
       @param cmd: command line to execut with all args.
       @type  separate_stderr: bool
@@ -649,92 +649,72 @@ def run_command(cmd,
       @type  directory: string
       @param directory: a directory to change to before running the command.
       @type  osenv: dictionary
-      @param osenv: dict of environment vars to be passed to the new process  
+      @param osenv: dict of environment vars to be passed to the new process
       @type  input_file_name: string
       @param input_file_name: file name to read stdin from. Default none
 
       @rtype: tuple
       @return: (return code, list of stdout lines, list of lines of stderr)
-   """
-   use_shell = False
-   if verbose(99):
-      msgb("RUN COMMAND", cmd)
-      msgb("RUN COMMAND repr", repr(cmd))
-   stdout = None
-   stderr = None
-   cmd_args = _prepare_cmd(cmd)
-   try:
-      input_file_obj = _cond_open_input_file(directory, input_file_name)
-
-      if separate_stderr:
-         sub = subprocess.Popen(cmd_args,
+    """
+    use_shell = False
+    if verbose(99):
+        msgb("RUN COMMAND", cmd)
+        msgb("RUN COMMAND repr", repr(cmd))
+    stdout = None
+    stderr = None
+    cmd_args = _prepare_cmd(cmd)
+    try:
+        input_file_obj = _cond_open_input_file(directory, input_file_name)
+        errout = subprocess.PIPE if separate_stderr else subprocess.STDOUT
+        sub = subprocess.Popen(cmd_args,
                                 shell=use_shell,
                                 executable=shell_executable,
                                 stdin = input_file_obj,
                                 stdout = subprocess.PIPE,
-                                stderr = subprocess.PIPE,
+                                stderr = errout,
                                 cwd=directory,
                                 env=osenv,
-                                universal_newlines=True,
+                                text=True,
                                 **kwargs)
-         (stdout, stderr ) = sub.communicate()
-         if not isinstance(stderr,list):
-             stderr = stderr.splitlines(True)
-         if not isinstance(stdout,list):
-             stdout = stdout.splitlines(True)
-         stdout = ensure_string(stdout)
-         stderr = ensure_string(stderr)
-         return (sub.returncode, stdout, stderr)
-      else:
-         sub = subprocess.Popen(cmd_args,
-                                shell=use_shell,
-                                executable=shell_executable,
-                                stdin = input_file_obj,
-                                stdout = subprocess.PIPE,
-                                stderr = subprocess.STDOUT,
-                                cwd=directory,
-                                env=osenv,
-                                universal_newlines=True,
-                                **kwargs)
-         stdout = sub.stdout.readlines()
-         sub.wait()
-         if not isinstance(stdout,list):
-             stdout = stdout.splitlines(True)
-         stdout = ensure_string(stdout)
-         return (sub.returncode, stdout, None)
-   except OSError as e:
-       s= [u"Execution failed for: %s\n" % (cmd) ]
-       uappend(s,"Result is %s\n" % (str(e)))
-       # put the error message in stderr if there is a separate
-       # stderr, otherwise put it in stdout.
-       if separate_stderr:
-           if stderr == None:
-               stderr = []
-           elif not isinstance(stderr,list):
-               stderr = stderr.splitlines(True)
-       if stdout == None:
-           stdout = []
-       elif not isinstance(stdout,list):
-           stdout = stdout.splitlines(True)
-       stderr = ensure_string(stderr)
-       stdout = ensure_string(stdout) 
-       if separate_stderr:
-           stderr.extend(s)
-       else:
-           stdout.extend(s)
-       return (1, stdout, stderr)
+        (stdout, stderr ) = sub.communicate()
+        if separate_stderr and not isinstance(stderr, list):
+            stderr = stderr.splitlines(True)
+        if not isinstance(stdout,list):
+            stdout = stdout.splitlines(True)
+        return (sub.returncode, stdout, stderr)
+    except OSError as e:
+        s= [u"Execution failed for: %s\n" % (cmd) ]
+        s.append("Result is %s\n" % (str(e)))
+        # put the error message in stderr if there is a separate
+        # stderr, otherwise put it in stdout.
+        if separate_stderr:
+            if stderr == None:
+                stderr = []
+            elif not isinstance(stderr,list):
+                stderr = stderr.splitlines(True)
+        if stdout == None:
+            stdout = []
+        elif not isinstance(stdout,list):
+            stdout = stdout.splitlines(True)
+        stderr = ensure_string(stderr)
+        stdout = ensure_string(stdout) 
+        if separate_stderr:
+            stderr.extend(s)
+        else:
+            stdout.extend(s)
+        return (1, stdout, stderr)
    
 
-def run_command_unbufferred(cmd, 
+def run_command_unbufferred(cmd,
                             prefix_line=None,
                             shell_executable=None,
                             directory=None,
                             osenv=None,
                             input_file_name=None,
                             **kwargs):
-   """
+    """
       Run a command string using the subprocess module.
-      
+
       @type  cmd: string
       @param cmd: command line to execut with all args.
       @type  prefix_line: string
@@ -747,46 +727,49 @@ def run_command_unbufferred(cmd,
       @param osenv: dict of environment vars to be passed to the new process
       @type  input_file_name: string
       @param input_file_name: file name to read stdin from. Default none
-        
+
       @rtype: tuple
       @return: (return code, list of stdout lines, empty list)
 
-   """
-   use_shell = False
-   if verbose(99):
-       msgb("RUN COMMAND", cmd)
-       msgb("RUN COMMAND repr", repr(cmd))
-   lines = []
-   cmd_args = _prepare_cmd(cmd)
-   try:
-       input_file_obj = _cond_open_input_file(directory, input_file_name)
-       sub = subprocess.Popen(cmd_args,
-                              shell=use_shell,
-                              executable=shell_executable,
-                              stdin = input_file_obj,
-                              stdout = subprocess.PIPE,
-                              stderr = subprocess.STDOUT,
-                              env=osenv,
-                              cwd=directory,
-                              universal_newlines=True,
-                              **kwargs)
-       while 1:
-           # FIXME: 2008-12-05 bad for password prompts without newlines.
-           line = sub.stdout.readline()
-           if line == '':
-               break
-           line = line.rstrip()
-           if prefix_line:
-               msgn(prefix_line)
-           msg(line)
-           lines.append(ensure_string(line)  + u"\n")
-           
-       sub.wait()
-       return (sub.returncode, lines, [])
-   except OSError as e:
-       uappend(lines, u"Execution failed for: %s\n" % (cmd))
-       uappend(lines, u"Result is %s\n" % (str(e)))
-       return (1, lines, [])
+    """
+    use_shell = False
+    if verbose(99):
+        msgb("RUN COMMAND", cmd)
+        msgb("RUN COMMAND repr", repr(cmd))
+    lines: list = []
+    cmd_args = _prepare_cmd(cmd)
+    try:
+        input_file_obj = _cond_open_input_file(directory, input_file_name)
+        sub = subprocess.Popen(cmd_args,
+                                shell=use_shell,
+                                executable=shell_executable,
+                                stdin = input_file_obj,
+                                stdout = subprocess.PIPE,
+                                stderr = subprocess.STDOUT,
+                                env=osenv,
+                                cwd=directory,
+                                text=True, # For a string stdout, stderr and stdin
+                                bufsize=1, # line buffered
+                                **kwargs)
+        while 1:
+            # FIXME: 2008-12-05 bad for password prompts without newlines.
+            line: str = sub.stdout.readline()
+            if line == '':
+                break
+            line = line.rstrip()
+            if prefix_line:
+                msgn(prefix_line)
+            msg(line)
+            lines.append(line + "\n")
+        sub.wait()
+
+        if input_file_obj:
+            input_file_obj.close()
+        return (sub.returncode, lines, [])
+    except OSError as e:
+        uappend(lines, u"Execution failed for: %s\n" % (cmd))
+        uappend(lines, u"Result is %s\n" % (str(e)))
+        return (1, lines, [])
 
 def run_command_output_file(cmd,
                             output_file_name,
@@ -795,9 +778,9 @@ def run_command_output_file(cmd,
                             osenv=None,
                             input_file_name=None,
                             **kwargs):
-   """
+    """
       Run a command string using the subprocess module.
-      
+
       @type  cmd: string
       @param cmd: command line to execut with all args.
       @type  output_file_name: string
@@ -813,48 +796,46 @@ def run_command_output_file(cmd,
 
       @rtype: tuple
       @return: (return code, list of stdout lines)
-   """
-   use_shell = False
-   if verbose(99):
-       msgb("RUN COMMAND", cmd)
-   lines = []
-   cmd_args = _prepare_cmd(cmd)
-   try:
-       output = io.open(output_file_name,"wt",encoding=unicode_encoding())
-       input_file_obj = _cond_open_input_file(directory, input_file_name)
-       sub = subprocess.Popen(cmd_args,
-                              shell=use_shell,
-                              executable=shell_executable,
-                              stdin  = input_file_obj,
-                              stdout = subprocess.PIPE,
-                              stderr = subprocess.STDOUT,
-                              env=osenv,
-                              cwd=directory,
-                              universal_newlines=True,
-                              **kwargs)
-       
-       (stdout, stderr) = sub.communicate()
-       if not isinstance(stdout,list):
-             stdout = stdout.splitlines(True)
-       stdout = ensure_string(stdout)
-       for line in stdout:
-           output.write(line)
-           lines.append(line)
-       output.close()
-       return (sub.returncode, lines, [])
-   except OSError as e:
-       uappend(lines,"Execution failed for: %s\n" % (cmd))
-       uappend(lines,"Result is %s\n" % (str(e)))
-       return (1, lines, [])
-   except:
-       print("Unxpected error:", sys.exc_info()[0])
-       raise
+    """
+    use_shell = False
+    if verbose(99):
+        msgb("RUN COMMAND", cmd)
+    lines: list = []
+    cmd_args = _prepare_cmd(cmd)
+    try:
+        output = io.open(output_file_name,"wt",encoding=unicode_encoding())
+        input_file_obj = _cond_open_input_file(directory, input_file_name)
+        sub = subprocess.Popen(cmd_args,
+                                shell=use_shell,
+                                executable=shell_executable,
+                                stdin  = input_file_obj,
+                                stdout = subprocess.PIPE,
+                                stderr = subprocess.STDOUT,
+                                env=osenv,
+                                cwd=directory,
+                                text=True, # For a string stdout, stderr and stdin
+                                **kwargs)
+
+        (stdout, stderr) = sub.communicate()
+        if stdout:
+            lines = stdout.splitlines(True)
+        for l in lines:
+            output.write(l)
+        output.close()
+        return (sub.returncode, lines, [])
+    except OSError as e:
+        uappend(lines,"Execution failed for: %s\n" % (cmd))
+        uappend(lines,"Result is %s\n" % (str(e)))
+        return (1, lines, [])
+    except:
+        print("Unxpected error:", sys.exc_info()[0])
+        raise
 
 def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
-   """
+    """
       Run a command string using the subprocess module. Read standard
       input from fn_i and write stdout/stderr to fn_o.
-      
+
       @type  cmd: string
       @param cmd: command line to execut with all args.
       @type  fn_i: string
@@ -868,26 +849,26 @@ def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
 
       @rtype: integer
       @return: return code
-      """
-   use_shell = False
-   cmd_args = _prepare_cmd(cmd)
-   try:
-       fin = io.open(fn_i, 'rt', encoding=unicode_encoding())
-       fout = io.open(fn_o, 'wt', encoding=unicode_encoding())
-       sub = subprocess.Popen(cmd_args, 
-                              shell=use_shell, 
-                              executable=shell_executable, 
-                              stdin=fin, 
-                              stdout=fout, 
-                              stderr=subprocess.STDOUT,
-                              universal_newlines=True,
-                              cwd=directory)
-       retval = sub.wait()
-       fin.close()
-       fout.close()
-       return retval
-   except OSError as e:
-       die(u"Execution failed for cmd %s\nResult is %s\n" % (cmd,str(e)))
+    """
+    use_shell = False
+    cmd_args = _prepare_cmd(cmd)
+    try:
+        fin = io.open(fn_i, 'rt', encoding=unicode_encoding())
+        fout = io.open(fn_o, 'wt', encoding=unicode_encoding())
+        sub = subprocess.Popen(cmd_args,
+                                shell=use_shell,
+                                executable=shell_executable,
+                                stdin=fin,
+                                stdout=fout,
+                                stderr=subprocess.STDOUT,
+                                text=True, # For a string stdout, stderr and stdin
+                                cwd=directory)
+        retval = sub.wait()
+        fin.close()
+        fout.close()
+        return retval
+    except OSError as e:
+        die(u"Execution failed for cmd %s\nResult is %s\n" % (cmd,str(e)))
 
 def find_dir(d):
     """Look upwards for a particular filesystem directory d as a
@@ -1000,7 +981,7 @@ class _timed_command_t(threading.Thread):
     rc.timed_run()
     """
 
-    def __init__(self, cmd, 
+    def __init__(self, cmd,
                 shell_executable=None,
                 directory=None,
                 osenv=None,
@@ -1035,9 +1016,9 @@ class _timed_command_t(threading.Thread):
             if args_lst == None:
                 args_lst = []
             if xenv == None:
-                (self.exitcode,self.output,self.stderr) = cmd(*args_lst) 
+                (self.exitcode,self.output,self.stderr) = cmd(*args_lst)
             else:
-                (self.exitcode,self.output,self.stderr) = cmd(xenv, *args_lst) 
+                (self.exitcode,self.output,self.stderr) = cmd(xenv, *args_lst)
             return
 
         #run an executable
@@ -1052,7 +1033,7 @@ class _timed_command_t(threading.Thread):
                                         cwd=self.directory,
                                         env=self.osenv,
                                         stdin = input_file_obj,
-                                        universal_newlines=True,
+                                        text=True, # For a string stdout, stderr and stdin
                                         **self.kwargs)
         except:
             (self.exception_type,
@@ -1071,7 +1052,7 @@ class _timed_command_t(threading.Thread):
             self.join(self.seconds)
         else:
             self.join()
-        
+
         if self.is_alive():
             try:
                 if self.sub:
@@ -1097,7 +1078,7 @@ def _is_python_cmd(cmd):
     return isinstance(cmd,types.FunctionType)
 
 
-def run_command_timed( cmd, 
+def run_command_timed( cmd,
                        shell_executable=None,
                        directory=None,
                        osenv=None,
@@ -1106,31 +1087,31 @@ def run_command_timed( cmd,
                        **kwargs ):
     """Run a timed command. kwargs are keyword args for subprocess.Popen.
 
-     @type  cmd: string or python function
-     @param cmd: command to run
+      @type  cmd: string or python function
+      @param cmd: command to run
 
-     @type  shell_executable: string
-     @param shell_executable:  the shell executable
+      @type  shell_executable: string
+      @param shell_executable:  the shell executable
 
-     @type  directory: string
-     @param directory:  the directory to run the command in
+      @type  directory: string
+      @param directory:  the directory to run the command in
 
-     @type  osenv: dictionary
-     @param osenv: dict of environment vars to be passed to the new process
+      @type  osenv: dictionary
+      @param osenv: dict of environment vars to be passed to the new process
 
-     @type  seconds: number
-     @param seconds: maximum execution time in seconds
+      @type  seconds: number
+      @param seconds: maximum execution time in seconds
 
-     @type  input_file_name: string
-     @param input_file_name: input filename when redirecting stdin.
+      @type  input_file_name: string
+      @param input_file_name: input filename when redirecting stdin.
 
-     @type  kwargs: keyword args
-     @param kwargs: keyword args for subprocess.Popen
+      @type  kwargs: keyword args
+      @param kwargs: keyword args for subprocess.Popen
 
      @rtype: tuple
      return: (return code, list of stdout+stderr lines)
     """
-    
+
     def _get_exit_code(tc):
         exit_code = 399
         if tc.sub:
@@ -1152,20 +1133,20 @@ def run_command_timed( cmd,
                           input_file_name,
                           stdout=fo,
                           stderr=fe,
-                          **kwargs)                            
+                          **kwargs)
 
     tc.timed_run()
-    
+
     if _is_python_cmd(tc.cmd):
         exit_code = tc.exitcode
         output = tc.output
         stderr = tc.stderr
-    else:    
+    else:
         fo.seek(0)
         output = fo.readlines()
         fo.close()
         output = ensure_string(output)
-        
+
         fe.seek(0)
         stderr = fe.readlines()
         fe.close()
@@ -1180,7 +1161,7 @@ def run_command_timed( cmd,
     if tc.exception_type:
         stderr.extend([ nl,
                         u'COMMAND ENCOUNTERD AN EXCEPTION' + nl])
-        stderr.extend(traceback.format_exception(tc.exception_type, 
+        stderr.extend(traceback.format_exception(tc.exception_type,
                                                  tc.exception_object,
                                                  tc.exception_trace))
 
@@ -1188,8 +1169,4 @@ def run_command_timed( cmd,
 
 
 def make_list_of_str(lst):
-   return [ str(x) for x in lst]
-def open_readlines(fn, mode='rt',enc=None):
-   if enc==None:
-       enc = unicode_encoding()
-   return io.open(f,mode,encoding=enc).readlines()
+    return [ str(x) for x in lst]
