@@ -3,7 +3,7 @@
 # Repackage a bunch of static libs as one big static library.
 #BEGIN_LEGAL
 #
-#Copyright (c) 2016 Intel Corporation
+#Copyright (c) 2024 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ def repack(files, ar='ar', target='liball.a', verbose=False):
         else:
             cmd = "%s x ../%s" % (ar,arg)
         if verbose:
-            uprint(u"EXTRACTING %s" % (cmd))
+            print(u"EXTRACTING %s" % (cmd))
         error= os.system(cmd)
         if error:
             raise arar_error('Extract failed for command %s' % (cmd))
@@ -70,7 +70,7 @@ def repack(files, ar='ar', target='liball.a', verbose=False):
     local_target = os.path.basename(target)
     cmd = "%s rcv %s %s" % (ar, local_target, " ".join(files))
     if verbose:
-        uprint(u"RECOMBINING %s" % (cmd))
+        print(u"RECOMBINING %s" % (cmd))
     error=os.system(cmd)
     if error:
         raise arar_error('Recombine failed')
@@ -78,7 +78,7 @@ def repack(files, ar='ar', target='liball.a', verbose=False):
     os.chdir('..')
     os.rename(os.path.join(tdir,local_target), target)
     if verbose:
-        uprint(u"CREATED %s" % (target))
+        print(u"CREATED %s" % (target))
     shutil.rmtree(tdir)
 
 

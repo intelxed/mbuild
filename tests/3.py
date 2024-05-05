@@ -27,7 +27,7 @@ env.parse_args()
 
 env['jobs']=8
 work_queue = mbuild.work_queue_t(env['jobs'])
-all_cmds = ['python -c "print(2+2)"']
+all_cmds = ['python3 -c "print(2+2)"']
 subs = {}
 command_list = []
 for cmd in all_cmds:

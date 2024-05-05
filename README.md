@@ -1,9 +1,5 @@
 MBUILD USER INFO
 -----------------
-
-![.github/workflows/ci.yml](https://github.com/intelxed/mbuild/workflows/.github/workflows/ci.yml/badge.svg)
-
-
 See:
      
 https://intelxed.github.io/

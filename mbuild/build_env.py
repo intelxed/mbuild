@@ -2,7 +2,7 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2022 Intel Corporation
+#Copyright (c) 2023 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -71,7 +71,8 @@ def set_compiler_env_common(env):
     shared_link_dict =  ('compiler', { 'ms':'/dll',
                                        'icl':'/dll',
                                        'icc':'-shared',
-                                       'gnu':'-shared'})
+                                       'icx':'-shared',
+                                       'gnu':'-shared',})
     
     env['shared_link'] = ( 'shared', { True:  shared_link_dict,
                                        False:''})
@@ -81,6 +82,7 @@ def set_compiler_env_common(env):
                                     'iclang':'-O',
                                     'icc':'-O',
                                     'icl':'/O',
+                                    'icx':'-O',
                                     'ms':'/O'})
 
     env['nologo'] = ( 'compiler', { 'gnu':'',
@@ -88,6 +90,7 @@ def set_compiler_env_common(env):
                                     'iclang':'',
                                     'icc':'',
                                     'icl':'/nologo',
+                                    'icx':'',
                                     'ms':'/nologo'})
     flags = ''
     flags += ' %(debug_flag)s'
@@ -126,16 +129,19 @@ def set_env_gnu(env):
     if env['CXX_COMPILER'] == '':
         env['CXX_COMPILER'] = ( 'compiler', { 'gnu':'g++',
                                               'icc':'icpc',
+                                              'icx':'icpx',
                                               'iclang':'icl++',
                                               'clang':'clang++'})
     if env['CC_COMPILER'] == '':
         env['CC_COMPILER'] =  ( 'compiler', { 'gnu':'gcc',
                                               'icc':'icc',
+                                              'icx':'icx',
                                               'iclang':'icl',
                                               'clang':'clang' })
     if env['ASSEMBLER'] == '':
         env['ASSEMBLER'] =  ( 'compiler', { 'gnu':'gcc',
                                             'icc':'icc',
+                                            'icx':'icx',
                                             'iclang':'icl',
                                             'clang':'yasm' })
 
@@ -144,6 +150,7 @@ def set_env_gnu(env):
     if env['ARCHIVER'] == '':
         env['ARCHIVER'] = ( 'compiler', { 'gnu': 'ar',    # or GAR??
                                           'icc' : 'xiar',
+                                          'icx' : 'xiar',
                                           'iclang' : 'xiar',
                                           'clang':'llvm-ar' })
     if env['RANLIB_CMD'] == '':
@@ -361,16 +368,21 @@ def set_env_ms(env):
                                 'g':'%(OPTOPT)sg'} )
 
     env['ASFLAGS'] = '/c /nologo '
-    env['LINKFLAGS']  += ' /nologo'
+    if env['compiler'] != 'icx':
+        env['LINKFLAGS']  += ' /nologo'
     env['ARFLAGS']     = '/nologo'
 
     env['link_prefix'] = ('use_compiler_to_link', { True:'/link', 
                                                     False:'' })
     if env['host_cpu'] == 'ia32':
-        env['LINKFLAGS'] += ' %(link_prefix)s /MACHINE:X86'
+        env['LINKFLAGS'] += ' %(link_prefix)s '
+        if env['compiler'] != 'icx':
+            env['LINKFLAGS'] += ' /MACHINE:X86 '
         env['ARFLAGS']   += ' /MACHINE:X86'
     elif env['host_cpu'] == 'x86-64':
-        env['LINKFLAGS'] += ' %(link_prefix)s /MACHINE:X64'
+        env['LINKFLAGS'] += ' %(link_prefix)s '
+        if env['compiler'] != 'icx':
+            env['LINKFLAGS'] += ' /MACHINE:X64 '
         env['ARFLAGS']   += ' /MACHINE:X64'
 
         env['favor'] = ( 'compiler', { 'ms'        : ' /favor:EM64T', 
@@ -398,12 +410,18 @@ def set_env_ms(env):
     env['DEBUGFLAG'] = '/Z7'
     env['DEBUGFLAG_LINK'] = ('use_compiler_to_link', { True:'/Z7', # of /Zi
                                                        False:'/debug'})
-    env['COUT'] = '/Fo'
+    if env['compiler'] != 'icx':
+        env['COUT'] = '/Fo'
+    else:
+        env['COUT'] = '-o '
     env['ASMOUT'] = '/Fo'
     env['LIBOUT'] = '/out:'
     env['EXEOUT'] = '/Fe'
-    env['LINKOUT'] = ('use_compiler_to_link',{ True:'/Fo',
-                                               False:'/OUT:'})
+    if env['compiler'] != 'icx':
+        env['LINKOUT'] = ('use_compiler_to_link',{ True:'/Fo',
+                                                   False:'/OUT:'})
+    else:
+        env['LINKOUT'] = '-o '
     env['DLLOPT'] = '/dll'
     env['OBJEXT'] = '.obj'
     env['LIBEXT'] = '.lib'
@@ -424,13 +442,16 @@ def set_env_ms(env):
 
     if env['CXX_COMPILER'] == '':
         env['CXX_COMPILER'] = ( 'compiler', { 'ms':'cl.exe',
-                                              'icl':'icl.exe' })
+                                              'icl':'icl.exe',
+                                              'icx':'icpx.exe'})
     if env['CC_COMPILER'] == '':
         env['CC_COMPILER'] = ( 'compiler', { 'ms':'cl.exe',
-                                             'icl':'icl.exe' })
+                                             'icl':'icl.exe',
+                                             'icx':'icx.exe'})
     if env['LINKER'] == '':
         env['LINKER'] = ( 'compiler', { 'ms': 'link.exe',
-                                        'icl' : 'xilink.exe'})
+                                        'icl' :'xilink.exe',
+                                        'icx':'icpx.exe'})
 
     # old versions of RC do not accept the /nologo switch
     env['rcnologo'] = ( 'msvs_version', { 'otherwise':' /nologo',
@@ -492,6 +513,13 @@ def set_env_clang(env):
 def set_env_icc(env):
     """Example of setting up the Intel ICC  environment for compilation"""
     set_env_gnu(env)
+
+def set_env_icx(env):
+    """Example of setting up the Intel ICX  environment for compilation"""
+    if env.on_windows():
+        set_env_ms(env)
+    else:
+        set_env_gnu(env)
 
 def set_env_iclang(env):
     """Example of setting up the Intel iclang (aka mac icl) environment for compilation"""

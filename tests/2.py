@@ -27,7 +27,7 @@ env.parse_args()
 
 env['jobs']=1
 work_queue = mbuild.work_queue_t(env['jobs'])
-all_cmds = [ 'python -c "print(1+1)"' ]
+all_cmds = [ 'python3 -c "print(1+1)"' ]
 out_file_name = 'foo'
 subs = {}
 command_list = []
