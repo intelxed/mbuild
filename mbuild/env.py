@@ -25,9 +25,10 @@ import sys
 import re
 import platform
 import types
-import optparse
+import argparse
 import time
 import copy
+from typing import List, Optional
 
 from   .base import *
 from . import util
@@ -528,7 +529,6 @@ class env_t(object):
         self._emitted_startup_msg = False
 
         mbuild_env_defaults = dict(
-            args = [],
             mbuild_version=False,
             jobs='4',
             build_dir='obj',
@@ -574,7 +574,7 @@ class env_t(object):
         # put them in the initial environment
         self.update_dict(mbuild_env_defaults)
 
-        self.parser = optparse.OptionParser()
+        self.parser: argparse.ArgumentParser = argparse.ArgumentParser()
         # set the defaults in the command line option parser
         self.parser.set_defaults(**mbuild_env_defaults)
 
@@ -587,7 +587,7 @@ class env_t(object):
         if self.added_common_knobs:
             return
         self.added_common_knobs=True
-        self.parser.add_option(
+        self.parser.add_argument(
             "-j", "--jobs",
             dest="jobs",
             action="store",
@@ -597,108 +597,108 @@ class env_t(object):
         if self.added_default_knobs:
             return
         self.added_default_knobs=True
-        self.parser.add_option(
+        self.parser.add_argument(
             "--mbuild-version",
             dest="mbuild_version",
             action="store_true",
             help="Emit the version information")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--build-dir",
             dest="build_dir",
             action="store",
             help="Build directory, default is 'obj'")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--src-dir",
             action="store",
             dest="src_dir",
             help="The directory where the sources are located.")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--gen-dir",
             action="store",
             dest="gen_dir",
             help="The directory where generated sources are assumed" + 
             " to be located.")
-        self.parser.add_option(
+        self.parser.add_argument(
             "-v",
             "--verbose",
             action="store",
             dest="verbose",
             help="Verbosity level. Defaults to value passed to env_t()")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--compiler",
             dest="compiler",
             action="store",
             help="Compiler (ms,gnu,clang,icc,icl,iclang, icx)." +
                  " Default is gnu on linux and" + 
                  " ms on windows. Default is: %s" % (self.default_compiler()))
-        self.parser.add_option(
+        self.parser.add_argument(
             "--debug",
             dest="debug",
             action="store_true",
             help="Debug build")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--shared",
             dest="shared",
             action="store_true",
             help="Shared DLL build")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--static",
             dest="static",
             action="store_true",
             help="Statically link executables")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--opt",
             dest="opt",
             action="store",
             help="Optimization level noopt, 0, 1, 2, 3")
-        self.parser.add_option(
+        self.parser.add_argument(
             "-s",
             "--silent",
             dest="silent",
             action="store_true",
             help="Silence all but the most important messages")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--extra-defines",
             dest="extra_defines",
             action="append",
             help="Extra preprocessor defines")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--extra-flags",
             dest="extra_flags",
             action="append",
             help="Extra values for CXXFLAGS and CCFLAGS")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--extra-cxxflags",
             dest="extra_cxxflags",
             action="append",
             help="Extra values for CXXFLAGS")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--extra-ccflags",
             dest="extra_ccflags",
             action="append",
             help="Extra values for CCFLAGS")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--extra-linkflags",
             dest="extra_linkflags",
             action="append",
             help="Extra values for LINKFLAGS")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--extra-libs",
             dest="extra_libs",
             action="append",
             help="Extra values for LIBS")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--toolchain",
             dest="toolchain",
             action="store",
             help="Compiler toolchain")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--vc-dir",
             dest="vc_dir",
             action="store",
             help="MSVS Compiler VC directory. For finding libraries " + 
             " and setting the toolchain")
-        self.parser.add_option(
+        self.parser.add_argument(
             '--msvs-version',
             '--msvc-version',
             '--msvsversion',
@@ -709,7 +709,7 @@ class env_t(object):
             "9=VS2008, 10=VS 2010/DEV10, 11=VS2012/DEV11, 12=VS2013, " +
             "14=VS2015, 15=VS2017, 16=VS2019, 17=VS2022. " +
             "This sets certain flags and idioms for quirks in some compilers.")
-        self.parser.add_option(
+        self.parser.add_argument(
             '--setup-msvc',
             '--setup-msvs',
             '--msvs-setup',
@@ -718,14 +718,14 @@ class env_t(object):
             action='store_true',
             help="Use the value of the --msvc-version to initialize" +
             " the MSVC configuration.")
-        self.parser.add_option(
+        self.parser.add_argument(
             '--icc-version',
             '--iccver',
             '--icc-ver',
             dest='icc_version',
             action='store',
             help="ICC/ICL version 7, 8, 9, 10, 11")
-        self.parser.add_option(
+        self.parser.add_argument(
             '--gcc-version',
             '--gccversion',
             '--gcc-ver',
@@ -733,51 +733,51 @@ class env_t(object):
             action='store',
             help="GCC version, with dots as in 2.96, 3.4.3, 4.2.0, etc. ")
 
-        self.parser.add_option(
+        self.parser.add_argument(
             "--cc",
             dest="cc",
             action="store",
             help="full path to C compiler")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--cxx",
             dest="cxx",
             action="store",
             help="full path to C++ compiler")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--linker",
             dest="linker",
             action="store",
             help="full path to linker")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--ar",
             dest="ar",
             action="store",
             help="full path to archiver (lib/ar)")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--as",
             dest="as",
             action="store",
             help="full path to assembler (gas/as/ml/ml64)")
 
-        self.parser.add_option(
+        self.parser.add_argument(
             "--yasm",
             dest="use_yasm",
             action="store_true",
             help="Use yasm")
-        self.parser.add_option(
+        self.parser.add_argument(
             "--no-cygwin-limit",
             dest="cygwin_limit_jobs",
             action="store_false",
             help="Do not limit cygwin to one job at a time. " +
             " Default is to limit cygwin to one job.")
 
-        self.parser.add_option(
+        self.parser.add_argument(
             "--host-cpu",
             dest="arg_host_cpu",
             action="store",
             help="Host CPU, typically ia32, intel64 or x86-64")
 
-        self.parser.add_option(
+        self.parser.add_argument(
             "--host-os",
             dest="arg_host_os",
             action="store",
@@ -871,25 +871,15 @@ class env_t(object):
             else:
                 die("copy_settings() could not read key %s from incoming environment" % k)
         
-    def update(self, targets=None):
+    def update(self, targets: Optional[List[str]] = None):
         """Post process the current environment, setting targets and bindings"""
 
-        # if the dct['args'] exists, supplement the targets list with
-        # that. This is how non-command-line invocations of mbuild
-        # pass the "other stuff"
-        if targets == None:
+        if targets is None:
             targets = []
-            
-        if not isinstance(targets,list):
-            die("The 'targets' environment option must be a list")
 
-        if 'args' in self.env:
-            args = self.env['args']
-            if isinstance(args,list):
-                targets.extend(args)
-            else:
-                die("The 'args' environment option must be a list")
-            
+        if 'targets' in self.env:
+            targets.extend(self.env['targets'])
+
         # split up the targets list so we can extract the command line
         # variable bindings
         just_targets = []
@@ -903,13 +893,14 @@ class env_t(object):
                                   ap.group('value'), 'equals' ))
                 continue
             sp = env_t.supplement_pattern.match(t)
-            if ap:
+            if sp:
                 msgb("BINDING", "%s --> [%s]" % 
-                     (ap.group('name'), ap.group('value')))
-                bindings.append( (ap.group('name'), 
-                                  ap.group('value'), 'plusequals') )
+                     (sp.group('name'), sp.group('value')))
+                bindings.append( (sp.group('name'),
+                                  sp.group('value'), 'plusequals') )
                 continue
             just_targets.append(t)
+        self.env['targets'] = just_targets
 
         # add command line variable bindings to the environment
         for (var,value, how) in bindings:
@@ -1073,9 +1064,8 @@ class env_t(object):
             # http://docs.python.org/tut/node6.html#SECTION006740000000000000000
             self.parser.set_defaults(**user_default_options)
 
-        (options, args) =  self.parser.parse_args()
-        dct = vars(options)
-        dct['args'].extend(args)
+        args =  self.parser.parse_args()
+        dct = vars(args)
         self.update_dict(dct)
 
         self.process_user_settings()
