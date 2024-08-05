@@ -928,7 +928,7 @@ def get_clang_version(full_path):
         (retcode, stdout, stderr) = run_command(f'{full_path} --version')
         if retcode == 0:
             for line in stdout:
-                r = re.search('version[ ]+(?P<version>(\d+\.)+\d+)', line.lower())
+                r = re.search(r'version[ ]+(?P<version>(\d+\.)+\d+)', line.lower())
                 if r:
                     return r.group('version')
     except:
