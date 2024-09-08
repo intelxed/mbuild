@@ -94,6 +94,7 @@ class env_t(object):
           - icc_version    7, 8, 9, 10, ...
           - gcc_version    2.96, 3.x.y, 4.x.y, ...
           - msvs_version   6 (VC98), 7 (.NET 2003), 8 (Pro 2005), ...
+          - no_mscrt       No implicit MSVC CRT-library build knob (/MT[d], /MD[d])
           
           - primary compilation toolsE{:}
              - CC             cl or gcc          (with toolchain path)
@@ -555,6 +556,7 @@ class env_t(object):
             vc_dir='',
             msvs_version='',
             setup_msvc=False,
+            mbuild_mscrt=True,
             icc_version='',
             gcc_version='',
             cc='',
@@ -718,6 +720,12 @@ class env_t(object):
             action='store_true',
             help="Use the value of the --msvc-version to initialize" +
             " the MSVC configuration.")
+        self.parser.add_option(
+            "--no-mscrt",
+            dest="mbuild_mscrt",
+            action="store_false",
+            help="No implicit MSVC CRT-library build knob (/MT[d], /MD[d])"
+            )
         self.parser.add_option(
             '--icc-version',
             '--iccver',

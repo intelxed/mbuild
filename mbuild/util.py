@@ -7,14 +7,14 @@
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
 #
-#        http://www.apache.org/licenses/LICENSE-2.0
+#      http://www.apache.org/licenses/LICENSE-2.0
 #
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-#
+#  
 #END_LEGAL
 
 """Basic useful utilities: file copying, removal, permissions,
@@ -99,12 +99,12 @@ def copy_tree(src,tgt, ignore_patterns=None, symlinks=False):
     if verbose(2):
         msgb("Done copying tree", tgt)
 
-def cmkdir(path_to_dir):
+def cmkdir(path_to_dir, exist_ok = False):
     """Make a directory if it does not exist"""
     if not os.path.exists(path_to_dir):
         if verbose(2):
             msgb("MKDIR", path_to_dir)
-        os.makedirs(path_to_dir)
+        os.makedirs(path_to_dir,exist_ok=exist_ok)
 def list2string(ls):
     """Print a list as a string"""
     s = " ".join(ls)
@@ -928,7 +928,7 @@ def get_clang_version(full_path):
         (retcode, stdout, stderr) = run_command(f'{full_path} --version')
         if retcode == 0:
             for line in stdout:
-                r = re.search('version[ ]+(?P<version>(\d+\.)+\d+)', line.lower())
+                r = re.search(r'version[ ]+(?P<version>(\d+\.)+\d+)', line.lower())
                 if r:
                     return r.group('version')
     except:
