@@ -2,7 +2,7 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2023 Intel Corporation
+#Copyright (c) 2024 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -40,10 +40,11 @@ def set_compiler_env_common(env):
     env['debug_flag_link'] = ( 'debug', { True: '%(DEBUGFLAG_LINK)s',
                                           False:''})
 
-    win_shared_compile_dict = ( 'compiler', { 'ms': ( 'debug', { True: '/MDd', False: '/MD' }),
-                                              'icl': ( 'debug', { True: '/MDd', False: '/MD' }), 
-                                              'otherwise': '',
-                                              })
+    win_shared_compile_dict = ('compiler', 
+                                            {'ms': ('mbuild_mscrt', {False: '', True: ('debug', {True: '/MDd', False: '/MD'})}),
+                                             'icl': ('mbuild_mscrt', {False: '', True: ('debug', {True: '/MDd', False: '/MD'})}),
+                                            'otherwise': '',
+                                            })
 
     shared_compile_dict = ( 'host_os', { 'android': '-fPIC',
                                           'lin': '-fPIC',
@@ -52,8 +53,9 @@ def set_compiler_env_common(env):
                                           'otherwise': '',
                                           })
     
-    win_static_compile_dict = ( 'compiler', { 'ms': ( 'debug', { True: '/MTd', False: '/MT' }),
-                                              'icl': ( 'debug', { True: '/MTd', False: '/MT' }), 
+    win_static_compile_dict = ( 'compiler', 
+                                            {'ms': ('mbuild_mscrt', {False: '', True: ('debug', {True: '/MTd', False: '/MT'})}),
+                                            'icl': ('mbuild_mscrt', {False: '', True: ('debug', {True: '/MTd', False: '/MT'})}),
                                               'otherwise': '',
                                               })
 
