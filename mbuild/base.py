@@ -165,10 +165,10 @@ def check_python_version(maj,minor,fix=0):
 
 
 try:
-  if check_python_version(3,8) == False:
-    die("MBUILD error: Need Python version 3.8 or later.")
+  if check_python_version(3,9) == False:
+    die("MBUILD error: Need Python version 3.9 or later.")
 except:
-  die("MBUILD error: Need Python version 3.8 or later.")
+  die("MBUILD error: Need Python version 3.9 or later.")
 
 import platform
 _on_mac = False
