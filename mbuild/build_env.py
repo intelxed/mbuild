@@ -201,7 +201,7 @@ def set_env_gnu(env):
     env['LIBOUT'] = ' ' # nothing when using gar/ar
     env['LINKOUT'] = '-o '
     env['EXEOUT'] = '-o '
-    if env.on_mac():
+    if env.on_mac() or env.on_windows():
         env['DLLOPT'] = '-shared' # '-dynamiclib'
     else:
         env['DLLOPT'] = '-shared -Wl,-soname,%(SOLIBNAME)s'

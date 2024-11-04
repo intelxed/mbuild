@@ -452,8 +452,8 @@ class env_t(object):
         distro = ''
         distro_ver = ''
         if  not self.on_mac()  and   not self.on_windows():
-            if util.check_python_version(3,8):
-                # With python 3.8 one needs to install the python "distro"
+            if util.check_python_version(3,9):
+                # With python 3.9 one needs to install the python "distro"
                 # package to obtain the linux distro information. I do not
                 # want to require users to install a non-default package
                 # so we'll have to live without the distro information.
