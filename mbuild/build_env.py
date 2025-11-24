@@ -2,7 +2,7 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2024 Intel Corporation
+#Copyright (c) 2025 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -291,7 +291,8 @@ def _check_set_rc(env, sdk):
 
 
 def _find_rc_cmd(env):
-    """Finding the rc executable is a bit of a nightmare.
+    r"""
+    Finding the rc executable is a bit of a nightmare.
     
      In MSVS2005(VC8):
          C:/Program Files (x86)/Microsoft Visual Studio 8/VC
