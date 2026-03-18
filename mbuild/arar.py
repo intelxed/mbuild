@@ -3,7 +3,7 @@
 # Repackage a bunch of static libs as one big static library.
 #BEGIN_LEGAL
 #
-#Copyright (c) 2024 Intel Corporation
+#Copyright (c) 2025 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@
 #END_LEGAL
 from __future__ import print_function
 import os
-import sys
 import shutil
 import re
+import subprocess, shlex
 
 from .base import *
 from .util import *
@@ -57,23 +57,27 @@ def repack(files, ar='ar', target='liball.a', verbose=False):
             else:
                 doto.append(os.path.join('..',arg))
             continue
-        if arg[0] == '/':
-            cmd = "%s x %s" % (ar,arg)
-        else:
-            cmd = "%s x ../%s" % (ar,arg)
+        
+        src_path = arg if arg.startswith('/') else f'../{arg}'
+        cmd = [ar, 'x', src_path]
         if verbose:
-            print(u"EXTRACTING %s" % (cmd))
-        error= os.system(cmd)
+            print("EXTRACTING", " ".join(shlex.quote(p) for p in cmd))
+
+        result = subprocess.run(cmd, capture_output=True, text=True)  # shell=False by default
+        error = result.returncode
         if error:
             raise arar_error('Extract failed for command %s' % (cmd))
     files = glob.glob('*.o') + doto
     local_target = os.path.basename(target)
-    cmd = "%s rcv %s %s" % (ar, local_target, " ".join(files))
+    cmd = [ar, "rcv", local_target] + files
+
     if verbose:
-        print(u"RECOMBINING %s" % (cmd))
-    error=os.system(cmd)
+        print("RECOMBINING", " ".join(shlex.quote(p) for p in cmd))
+
+    result = subprocess.run(cmd, capture_output=True, text=True)  # shell=False by default
+    error = result.returncode
     if error:
-        raise arar_error('Recombine failed')
+        raise arar_error("Recombine failed")
 
     os.chdir('..')
     os.rename(os.path.join(tdir,local_target), target)
