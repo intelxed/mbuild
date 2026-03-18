@@ -1,7 +1,7 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2024 Intel Corporation
+#Copyright (c) 2025 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -33,10 +33,7 @@ import subprocess
 import tempfile
 import shlex
 import traceback
-try:
-     import cPickle as apickle
-except:
-     import pickle as apickle
+import json
 
 from .base import *
 
@@ -470,16 +467,15 @@ def hash_file(fn):
 
 def write_signatures(fn,d):
     """Write a dictionary of d[file]=hash to the specified file"""
-    # FIXME: binary protocol 2, binary file write DOES NOT WORK ON win32/win64
-    f = open(fn,"wb")
-    apickle.dump(d,f)
+    f = open(fn,"w")
+    json.dump(d,f)
     f.close()
 
 def read_signatures(fn):
     """Return a dictionary of d[file]=hash from the specified file"""
     try:
-        f = open(fn,"rb")
-        d = apickle.load(f)
+        f = open(fn,"r")
+        d = json.load(f)
         f.close()
         return d
     except:
@@ -489,7 +485,7 @@ def read_signatures(fn):
 def hash_string(s):
     """Compute a sha1 hash of a string and return the hex digest"""
     if check_python_version(2,5):
-        m = hashlib.sha1()
+        m = hashlib.sha1(usedforsecurity=False)
     else:
         m = sha.new()
     m.update(s)
@@ -598,27 +594,12 @@ def print_elapsed_time(start_time, end_time=None, prefix=None, current=False):
 def _prepare_cmd(cmd):
     """Tokenize the cmd string input. Return as list on non-windows
        platforms. On windows, it returns the raw command string."""
-
+    # tokenizing Windows strings POSIX-style is problematic (even with or without the posix option) with slashes, 
+    # spaces, and quoting requirements, thus pass the command as-is.
     if on_native_windows():
-        # the posix=False is required to keep shlex from eating
-        # backslashed path characters on windows. But
-        # the nonposix chokes on /Dfoo="xxx yyy" in that it'll
-        # split '/Dfoo="xxx' and 'yyy"' in to two different args.
-        # so we cannot use that
-        #args = shlex.split(cmd,posix=False)
-
-        # using posix mode (default) means that all commands must must
-        # forward slashes. So that is annoying and we avoid that
-        #args = shlex.split(cmd)
-
-        # passing the args through works fine. Make sure not to have
-        # any carriage returns or leading white space in the supplied
-        # command.
-        args = cmd
-
+        return cmd
     else:
-        args = shlex.split(cmd)
-    return args
+        return shlex.split(cmd)
 
 def _cond_open_input_file(directory,input_file_name):
     if input_file_name:
@@ -656,7 +637,6 @@ def run_command(cmd,
       @rtype: tuple
       @return: (return code, list of stdout lines, list of lines of stderr)
     """
-    use_shell = False
     if verbose(99):
         msgb("RUN COMMAND", cmd)
         msgb("RUN COMMAND repr", repr(cmd))
@@ -667,7 +647,7 @@ def run_command(cmd,
         input_file_obj = _cond_open_input_file(directory, input_file_name)
         errout = subprocess.PIPE if separate_stderr else subprocess.STDOUT
         sub = subprocess.Popen(cmd_args,
-                                shell=use_shell,
+                                shell=False,
                                 executable=shell_executable,
                                 stdin = input_file_obj,
                                 stdout = subprocess.PIPE,
@@ -732,7 +712,6 @@ def run_command_unbufferred(cmd,
       @return: (return code, list of stdout lines, empty list)
 
     """
-    use_shell = False
     if verbose(99):
         msgb("RUN COMMAND", cmd)
         msgb("RUN COMMAND repr", repr(cmd))
@@ -741,7 +720,7 @@ def run_command_unbufferred(cmd,
     try:
         input_file_obj = _cond_open_input_file(directory, input_file_name)
         sub = subprocess.Popen(cmd_args,
-                                shell=use_shell,
+                                shell=False,
                                 executable=shell_executable,
                                 stdin = input_file_obj,
                                 stdout = subprocess.PIPE,
@@ -797,7 +776,6 @@ def run_command_output_file(cmd,
       @rtype: tuple
       @return: (return code, list of stdout lines)
     """
-    use_shell = False
     if verbose(99):
         msgb("RUN COMMAND", cmd)
     lines: list = []
@@ -806,7 +784,7 @@ def run_command_output_file(cmd,
         output = io.open(output_file_name,"wt",encoding=unicode_encoding())
         input_file_obj = _cond_open_input_file(directory, input_file_name)
         sub = subprocess.Popen(cmd_args,
-                                shell=use_shell,
+                                shell=False,
                                 executable=shell_executable,
                                 stdin  = input_file_obj,
                                 stdout = subprocess.PIPE,
@@ -850,13 +828,12 @@ def run_cmd_io(cmd, fn_i, fn_o,shell_executable=None, directory=None):
       @rtype: integer
       @return: return code
     """
-    use_shell = False
     cmd_args = _prepare_cmd(cmd)
     try:
         fin = io.open(fn_i, 'rt', encoding=unicode_encoding())
         fout = io.open(fn_o, 'wt', encoding=unicode_encoding())
         sub = subprocess.Popen(cmd_args,
-                                shell=use_shell,
+                                shell=False,
                                 executable=shell_executable,
                                 stdin=fin,
                                 stdout=fout,
@@ -1022,13 +999,12 @@ class _timed_command_t(threading.Thread):
             return
 
         #run an executable
-        use_shell = False
         cmd_args = _prepare_cmd(cmd)
         input_file_obj = _cond_open_input_file(self.directory,
                                                self.input_file_name)
         try:
             self.sub = subprocess.Popen(cmd_args,
-                                        shell=use_shell,
+                                        shell=False,
                                         executable=self.shell_executable,
                                         cwd=self.directory,
                                         env=self.osenv,
@@ -1062,7 +1038,7 @@ class _timed_command_t(threading.Thread):
                         # Windows here.
                         kill_cmd = "taskkill /F /T /PID %i" % (self.sub.pid)
                         cmd_args = _prepare_cmd(kill_cmd)
-                        subprocess.Popen(cmd_args, shell=True)
+                        subprocess.Popen(cmd_args)
                     else:
                         self.sub.kill()
             except:

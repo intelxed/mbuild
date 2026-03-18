@@ -2,7 +2,7 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2022 Intel Corporation
+#Copyright (c) 2025 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -72,10 +72,7 @@ import platform
 import types
 import collections
 import atexit
-try:
-    import cPickle as apickle
-except:
-    import pickle as apickle
+import json
 
 
 from .base import *
@@ -244,10 +241,6 @@ class _mbuild_dep_record_t(object):
         print(self.dump_str())
     def __str__(self):
         return self.dump_str()
-
-class _mbuild_storage_object_t(object):
-    def __init__(self, signature):
-        self.signature = signature
         
 def _do_terminate(d):
     """called by atexit function for dag_t objects"""
@@ -271,7 +264,7 @@ class dag_t(object):
         self.name = name
         self.recs = {}  # _mbuild_dep_record_t's
         
-        # dictionary of _mbuild_storage_object_t's by file name.
+        # dictionary of signature values by file name.
         self.old_signatures = {}
 
         # if you care about changes to the python functions, then
@@ -349,8 +342,7 @@ class dag_t(object):
         return h
 
     def dag_write_signatures(self):
-        """Write a dictionary of _mbuild_storage_object_t's to the
-        given file name"""
+        """Write a dictionary of signatures to the given file name"""
         vmsgb(10, "WRITING SIGNATURES", self.signature_file_name)
         d = {}
         for (k,v) in iter(self.recs.items()):
@@ -362,7 +354,7 @@ class dag_t(object):
                     # dictionary with a prefix
                     command_hash = v.creator.hash()
                     full_key = v.creator.dagkey()
-                    d[full_key]= _mbuild_storage_object_t(command_hash)
+                    d[full_key] = command_hash
                     if verbose(99):
                         msgb("SIGWRITE", "%s -> %s" % (str(command_hash),
                                                        full_key))
@@ -379,19 +371,15 @@ class dag_t(object):
 
             if verbose(99):
                 msgb("SIGWRITE", "%s -> %s" % (str(v.signature),k))
-            d[k] = _mbuild_storage_object_t(v.signature)
-            
-        # FIXME: binary protocol 2, binary file write DOES NOT WORK ON
-        # win32/win64
-        f = open(self.signature_file_name,"wb")
-        apickle.dump(d,f)
+            d[k] = v.signature
+
+        f = open(self.signature_file_name, "w")
+        json.dump(d, f)
         f.close()
         
     def _check_command_signature(self, co):
         """Return True if the signature matches the command object."""
 
-        # if the command is not a list of strings, we just assume that
-        # is has changed.
         if co.has_python_subcommand():
             if self._python_commands_changed:
                 return False
@@ -400,7 +388,7 @@ class dag_t(object):
 
         full_key = co.dagkey()
         try:
-            old_hash = self.old_signatures[full_key].signature
+            old_hash = self.old_signatures[full_key]
             if verbose(99):
                 msgb('COMMAND HASH', full_key)
                 msgb('COMMAND HASH', old_hash)
@@ -420,25 +408,24 @@ class dag_t(object):
 
         
     def _read_signatures(self, file_name):
-        """Read a dictionary of _mbuild_storage_object_t's from the
-        given file name."""
+        """Read a dictionary of signatures from the given file name."""
         if verbose(10):
             msgb("READING SIGNATURES", file_name)
         try:
-            f = open(file_name,"rb")
-            self.old_signatures = apickle.load(f)
+            f = open(file_name, "r")
+            self.old_signatures = json.load(f)
             f.close()
         except:
             warn("READING SIGNATURES FAILED FOR "+ file_name)
             return
         if verbose(99):
-            for k, v in iter(self.old_signatures.items()):
-                msgb("SIGREAD", "%s -> %s" % (str(v.signature),k))
+            for k, sig in iter(self.old_signatures.items()):
+                msgb("SIGREAD", "%s -> %s" % (str(sig), k))
 
         # Add old signatures to any existing files
         for k, v in iter(self.recs.items()):
             if k in self.old_signatures:
-                v.old_signature = self.old_signatures[k].signature
+                v.old_signature = self.old_signatures[k]
 
     def _check_required_file(self,fn):
         if fn in self.required_set:
@@ -913,7 +900,7 @@ class dag_t(object):
             msgb("MKDEP", file_name)
         r =  _mbuild_dep_record_t(file_name, creator)
         if file_name in self.old_signatures:
-            r.old_signature = self.old_signatures[file_name].signature
+            r.old_signature = self.old_signatures[file_name]
         return r
 
     def _check_add_dep_rec(self, fn, creator=None):
