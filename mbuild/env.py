@@ -90,7 +90,9 @@ class env_t(object):
   
           - toolchain      path to the compiler tools (default is ''). If toolchain is
                            set, it should end with a trailing slash.
-          - vc_dir         path to the compiler VC directory for MSVS (default is '')n
+          - toolchain_vs   Visual Studio installation directory including edition
+                           (for example .../2022/Professional) for MSVS setup
+                           override (default is '')
           - icc_version    7, 8, 9, 10, ...
           - gcc_version    2.96, 3.x.y, 4.x.y, ...
           - msvs_version   6 (VC98), 7 (.NET 2003), 8 (Pro 2005), ...
@@ -551,9 +553,10 @@ class env_t(object):
             extra_linkflags=[],
             extra_libs=[],
             toolchain='',
+            vc_dir='',
+            toolchain_vs='',
             ignorable_files=[], # deprecated, unused 2011-10-20
             required_files=[],
-            vc_dir='',
             msvs_version='',
             setup_msvc=False,
             mbuild_mscrt=True,
@@ -695,11 +698,12 @@ class env_t(object):
             action="store",
             help="Compiler toolchain")
         self.parser.add_option(
-            "--vc-dir",
-            dest="vc_dir",
+            "--toolchain-vs",
+            dest="toolchain_vs",
             action="store",
-            help="MSVS Compiler VC directory. For finding libraries " + 
-            " and setting the toolchain")
+            help="Visual Studio root directory for MSVS setup override. " +
+            "For MSVS 2017 and newer, include the edition " +
+            "(e.g. .../Microsoft Visual Studio/2022/Professional). ")
         self.parser.add_option(
             '--msvs-version',
             '--msvc-version',
@@ -973,6 +977,12 @@ class env_t(object):
             sys.exit(0)
 
         self._implied_compiler(self.env)
+
+        if self.env['toolchain_vs']:
+            if self.env['compiler'] != 'ms' or not self.env['msvs_version']:
+                die("--toolchain-vs requires --compiler=ms and --msvs-version")
+            if self.env['toolchain']:
+                die("--toolchain and --toolchain-vs are mutually exclusive")
 
         if self.env['silent']:
             set_verbosity(0)

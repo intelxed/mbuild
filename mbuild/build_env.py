@@ -227,7 +227,7 @@ def find_ms_toolchain(env):
     if env['msvs_version']:
         env['setup_msvc']=True
 
-    if env['vc_dir'] == '' and not env['setup_msvc']:
+    if not env['setup_msvc']:
         if 'MSVCDir' in os.environ:
             vs_dir = os.environ['MSVCDir']
             if os.path.exists(vs_dir):

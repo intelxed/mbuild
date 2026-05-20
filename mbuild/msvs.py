@@ -150,7 +150,7 @@ def _set_msvs_dev8(env, x64_host, x64_target, regv=None): # VS 2005
     else:
         prefixes = ["c:/Program Files (x86)/Microsoft Visual Studio 8",
                     "c:/Program Files/Microsoft Visual Studio 8"]
-    prefix = _find_dir_list(prefixes)
+        prefix = _find_dir_list(prefixes)
     if not os.path.exists(prefix):
         die("Could not find MSVC8 (2005)")
 
@@ -224,7 +224,7 @@ def _set_msvs_dev9(env, x64_host, x64_target, regv=None): # VS 2008
     else:
         prefixes = ['C:/Program Files (x86)/Microsoft Visual Studio 9.0',
                     'C:/Program Files/Microsoft Visual Studio 9.0']
-    prefix = _find_dir_list(prefixes)
+        prefix = _find_dir_list(prefixes)
 
     set_env('VSINSTALLDIR', prefix)
     set_env('VS90COMNTOOLS', prefix + '/Common7/Tools')
@@ -695,23 +695,20 @@ def _set_msvs_dev18(env, x64_host, x64_target, regv=None): # msvs 2026
     
     progfi = 'C:/Program Files (x86)'
     if regv:
-        prefix = regv
+        p = regv
     else:
         prefix = 'C:/Program Files/Microsoft Visual Studio/2026'
+        for v in versions:
+            p = _ijoin(prefix, v)
+            if os.path.exists(p):
+                break
+    if not os.path.exists(p):
+        die('Could not find MSVS 2026 directory')
 
     if x64_target:
         tgt = 'x64'
     else:
         tgt = 'x86'
-
-    found = False
-    for v in versions:
-        p = _ijoin(prefix,v)
-        if os.path.exists(p):
-            found = True
-            break
-    if not found:
-        die('Could not find MSVS 2026 directory')
     vprefix = p
     winkit10 = progfi + '/Windows Kits/10'    
     winkit10version, winkit10complete = _get_winkit10_version(env,winkit10)
@@ -870,23 +867,20 @@ def _set_msvs_dev17(env, x64_host, x64_target, regv=None): # msvs 2022
     
     progfi = 'C:/Program Files (x86)'
     if regv:
-        prefix = regv
+        p = regv
     else:
         prefix = 'C:/Program Files/Microsoft Visual Studio/2022'
+        for v in versions:
+            p = _ijoin(prefix, v)
+            if os.path.exists(p):
+                break
+    if not os.path.exists(p):
+        die('Could not find MSVS 2022 directory')
 
     if x64_target:
         tgt = 'x64'
     else:
         tgt = 'x86'
-
-    found = False
-    for v in versions:
-        p = _ijoin(prefix,v)
-        if os.path.exists(p):
-            found = True
-            break
-    if not found:
-        die('Could not find MSVS 2022 directory')
     vprefix = p
     winkit10 = progfi + '/Windows Kits/10'    
     winkit10version, winkit10complete = _get_winkit10_version(env,winkit10)
@@ -905,7 +899,7 @@ def _set_msvs_dev17(env, x64_host, x64_target, regv=None): # msvs 2022
     libpath = []
     inc  = []
     
-    add_env(inc, prefix + '/ATLMFC/include')
+    add_env(inc, msvc_tools_root + '/ATLMFC/include')
     add_env(inc, msvc_tools_root + '/include')
     add_env(inc, netfx_sdk + 'include/um')
     wki = '{}/include/{}'.format(winkit10, winkit10version)
@@ -1051,23 +1045,20 @@ def _set_msvs_dev16(env, x64_host, x64_target, regv=None): # msvs 2019
     
     progfi = 'C:/Program Files (x86)'
     if regv:
-        prefix = regv
+        p = regv
     else:
         prefix = progfi + '/Microsoft Visual Studio/2019'
+        for v in versions:
+            p = _ijoin(prefix, v)
+            if os.path.exists(p):
+                break
+    if not os.path.exists(p):
+        die('Could not find MSVS 2019 directory')
 
     if x64_target:
         tgt = 'x64'
     else:
         tgt = 'x86'
-
-    found = False
-    for v in versions:
-        p = _ijoin(prefix,v)
-        if os.path.exists(p):
-            found = True
-            break
-    if not found:
-        die('Could not find MSVS 2019 directory')
     vprefix = p
     winkit10 = progfi + '/Windows Kits/10'    
     winkit10version, winkit10complete = _get_winkit10_version(env,winkit10)
@@ -1086,7 +1077,7 @@ def _set_msvs_dev16(env, x64_host, x64_target, regv=None): # msvs 2019
     libpath = []
     inc  = []
     
-    add_env(inc, prefix + '/ATLMFC/include')
+    add_env(inc, msvc_tools_root + '/ATLMFC/include')
     add_env(inc, msvc_tools_root + '/include')
     add_env(inc, netfx_sdk + 'include/um')
     wki = '{}/include/{}'.format(winkit10, winkit10version)
@@ -1233,23 +1224,20 @@ def _set_msvs_dev15(env, x64_host, x64_target, regv=None): # msvs 2017
     
     progfi = 'C:/Program Files (x86)'
     if regv:
-        prefix = regv
+        p = regv
     else:
         prefix = progfi + '/Microsoft Visual Studio/2017'
+        for v in versions:
+            p = _ijoin(prefix, v)
+            if os.path.exists(p):
+                break
+    if not os.path.exists(p):
+        die('Could not find MSVS 2017 directory')
 
     if x64_target:
         tgt = 'x64'
     else:
         tgt = 'x86'
-
-    found = False
-    for v in versions:
-        p = _ijoin(prefix,v)
-        if os.path.exists(p):
-            found = True
-            break
-    if not found:
-        die('Could not find MSVS 2017 directory')
     vprefix = p
     #msgb('VPREFIX', vprefix)
     winkit10 = progfi + '/Windows Kits/10'    
@@ -1269,7 +1257,7 @@ def _set_msvs_dev15(env, x64_host, x64_target, regv=None): # msvs 2017
     libpath = []
     inc  = []
     
-    add_env(inc, prefix + '/ATLMFC/include')
+    add_env(inc, msvc_tools_root + '/ATLMFC/include')
     add_env(inc, msvc_tools_root + '/include')
     add_env(inc, netfx_sdk + 'include/um')
     wki = '{}/include/{}'.format(winkit10, winkit10version)
@@ -1743,6 +1731,7 @@ def _find_specific_msvs_version(env,uv):
 
         
 def set_msvs_env(env):
+
     versions = []
     if env['msvs_version'] != '' :
         if ',' in env['msvs_version']:    # got a list of versions
@@ -1788,6 +1777,11 @@ def set_msvs_env(env):
     # "express" compiler is 32b only            
     vc = None
     vs_dir = None
+    if env['toolchain_vs']:
+        vs_dir = env['toolchain_vs']
+        if not os.path.exists(vs_dir):
+            die("--toolchain-vs path does not exist: " + vs_dir)
+
     i = int(env['msvs_version'])
     if i == 6: # 32b only
         vc = _set_msvs_dev6(env,x64_host, x64_target)
