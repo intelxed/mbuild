@@ -635,6 +635,7 @@ def _get_winkit10_version(env, winkit10):
             if (os.path.exists('{}/shared'.format(g)) and
                 os.path.exists('{}/ucrt'.format(g))     ):
                     winkit10version = os.path.basename(g)
+                    break
 
     if winkit10version:
         complete = True
