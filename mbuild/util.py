@@ -1,7 +1,7 @@
 # -*- python -*-
 #BEGIN_LEGAL
 #
-#Copyright (c) 2025 Intel Corporation
+#Copyright (c) 2026 Intel Corporation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -96,12 +96,13 @@ def copy_tree(src,tgt, ignore_patterns=None, symlinks=False):
     if verbose(2):
         msgb("Done copying tree", tgt)
 
-def cmkdir(path_to_dir, exist_ok = False):
-    """Make a directory if it does not exist"""
-    if not os.path.exists(path_to_dir):
-        if verbose(2):
-            msgb("MKDIR", path_to_dir)
-        os.makedirs(path_to_dir,exist_ok=exist_ok)
+def cmkdir(path_to_dir, exist_ok=True):
+    """Make a directory if it does not exist.
+    Raises FileExistsError if a file exists at the path,
+    or if exist_ok=False and the directory already exists."""
+    if verbose(2):
+        msgb("MKDIR", path_to_dir)
+    os.makedirs(path_to_dir, exist_ok=exist_ok)
 def list2string(ls):
     """Print a list as a string"""
     s = " ".join(ls)
